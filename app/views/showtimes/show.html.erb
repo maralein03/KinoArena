@@ -1,4 +1,10 @@
-<div class="mx-auto max-w-4xl">
+<%= turbo_stream_from SeatBroadcast.stream_name(@showtime) %>
+
+<div class="mx-auto max-w-4xl"
+     data-controller="seat-map"
+     data-seat-map-price-value="<%= @showtime.price.to_f %>"
+     data-seat-map-hold-url-value="<%= showtime_seat_holds_path(@showtime) %>"
+     data-seat-map-logged-in-value="<%= logged_in? %>">
   <div class="text-center">
     <h1 class="text-4xl"><%= @showtime.movie.title %></h1>
     <p class="ka-label mt-2">
@@ -19,8 +25,9 @@
     </p>
   <% end %>
 
-  <%= form_with url: bookings_path, method: :post,
-        data: { controller: "seat-map", seat_map_price_value: @showtime.price.to_f } do |f| %>
+  <div data-seat-map-target="notice" class="mt-6 hidden rounded-lg border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-center text-sm text-brand-300"></div>
+
+  <%= form_with url: bookings_path, method: :post do |f| %>
     <%= hidden_field_tag :showtime_id, @showtime.id %>
 
     <div class="mt-10 overflow-x-auto">
@@ -31,27 +38,10 @@
 
             <div class="flex gap-1.5">
               <% seats.each do |seat| %>
-                <% if @booked_seat_ids.include?(seat.id) %>
-                  <span class="flex h-7 w-7 items-center justify-center rounded-t-md rounded-b-sm
-                               bg-ink-900 text-slate-700 ring-1 ring-inset ring-white/5"
-                        title="Platz <%= seat.label %> ist bereits gebucht">
-                    <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path d="M4.3 4.3a1 1 0 011.4 0L10 8.6l4.3-4.3a1 1 0 111.4 1.4L11.4 10l4.3 4.3a1 1 0 01-1.4 1.4L10 11.4l-4.3 4.3a1 1 0 01-1.4-1.4L8.6 10 4.3 5.7a1 1 0 010-1.4z"/>
-                    </svg>
-                  </span>
-                <% else %>
-                  <label class="group relative h-7 w-7 cursor-pointer rounded-t-md rounded-b-sm bg-slate-600
-                                ring-1 ring-inset ring-white/20 transition
-                                hover:bg-slate-500 hover:ring-brand-400
-                                has-[:checked]:bg-brand-500 has-[:checked]:ring-brand-400"
-                         title="Platz <%= seat.label %> ist frei">
-                    <%= check_box_tag "seat_ids[]", seat.id, false,
-                          id: "seat_#{seat.id}",
-                          disabled: !logged_in?,
-                          class: "sr-only",
-                          data: { seat_map_target: "seat", label: seat.label, action: "change->seat-map#update" } %>
-                  </label>
-                <% end %>
+                <%= render "showtimes/seat",
+                      seat: seat,
+                      booked: @booked_seat_ids.include?(seat.id),
+                      hold: @holds_by_seat_id[seat.id] %>
               <% end %>
             </div>
 
@@ -70,12 +60,15 @@
       </div>
     </div>
 
-    <div class="mt-8 flex flex-wrap justify-center gap-6 text-xs text-slate-400">
+    <div class="mt-8 flex flex-wrap justify-center gap-5 text-xs text-slate-400">
       <span class="flex items-center gap-2">
         <span class="h-3.5 w-3.5 rounded-sm bg-slate-600 ring-1 ring-inset ring-white/20"></span> Frei
       </span>
       <span class="flex items-center gap-2">
-        <span class="h-3.5 w-3.5 rounded-sm bg-brand-500"></span> Ausgewählt
+        <span class="h-3.5 w-3.5 rounded-sm bg-brand-500"></span> Deine Auswahl
+      </span>
+      <span class="flex items-center gap-2">
+        <span class="h-3.5 w-3.5 rounded-sm bg-gold-400"></span> Wird gerade reserviert
       </span>
       <span class="flex items-center gap-2">
         <span class="flex h-3.5 w-3.5 items-center justify-center rounded-sm bg-ink-900 ring-1 ring-inset ring-white/5">
@@ -84,12 +77,20 @@
           </svg>
         </span> Bereits gebucht
       </span>
-      <span class="font-mono text-slate-500">
-        <%= @seats.size - @booked_seat_ids.size %> von <%= @seats.size %> Plätzen frei
-      </span>
     </div>
 
     <div class="ka-card mt-10 p-5">
+      <div data-seat-map-target="timer"
+           class="mb-4 hidden items-center gap-3 rounded-lg border border-gold-400/30 bg-gold-400/10 px-4 py-3">
+        <svg class="h-5 w-5 text-gold-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.4.8l2.5 1.9a1 1 0 101.2-1.6L11 9.5V6z" clip-rule="evenodd"/>
+        </svg>
+        <div>
+          <p class="ka-label">Plätze reserviert für</p>
+          <p class="font-mono text-xl text-gold-400" data-seat-map-target="countdown">05:00</p>
+        </div>
+      </div>
+
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p class="ka-label">Ausgewählte Plätze</p>

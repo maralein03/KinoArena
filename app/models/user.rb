@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :bookings, dependent: :destroy
+  has_many :seat_holds, dependent: :destroy
   has_many :activity_logs, dependent: :nullify
 
   EMAIL_FORMAT = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/

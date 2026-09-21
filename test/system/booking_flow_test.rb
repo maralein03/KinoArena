@@ -14,7 +14,7 @@ class BookingFlowTest < ApplicationSystemTestCase
     assert_text "Leinwand"
 
     check "seat_#{seats(:a2).id}"
-    check "seat_#{seats(:b1).id}"
+    check "seat_#{seats(:b2).id}"
     click_button "submit-booking"
 
     assert_text "Buchung erfolgreich"
@@ -25,7 +25,7 @@ class BookingFlowTest < ApplicationSystemTestCase
     visit showtime_path(showtimes(:evening))
 
     assert_text "um Tickets zu buchen"
-    assert_no_selector "#submit-booking:not([disabled])"
+    assert_selector "#submit-booking[disabled]"
   end
 
   test "NFA-1 belegter Sitzplatz ist nicht auswaehlbar" do

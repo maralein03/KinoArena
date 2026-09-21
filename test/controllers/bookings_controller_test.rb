@@ -12,7 +12,7 @@ class BookingsControllerTest < ActionDispatch::IntegrationTest
     assert_difference("Booking.count", 2) do
       post bookings_path, params: {
         showtime_id: showtimes(:evening).id,
-        seat_ids: [ seats(:a2).id, seats(:b1).id ]
+        seat_ids: [ seats(:a2).id, seats(:b2).id ]
       }
     end
 
@@ -69,5 +69,26 @@ class BookingsControllerTest < ActionDispatch::IntegrationTest
     assert_difference("ActivityLog.where(action: 'booking_created').count", 1) do
       post bookings_path, params: { showtime_id: showtimes(:evening).id, seat_ids: [ seats(:b2).id ] }
     end
+  end
+
+  test "FA-Opt-3 fremd reservierter Platz kann nicht gebucht werden" do
+    sign_in_as users(:customer)
+
+    assert_no_difference("Booking.count") do
+      post bookings_path, params: { showtime_id: showtimes(:evening).id, seat_ids: [ seats(:b1).id ] }
+    end
+
+    assert_redirected_to showtime_path(showtimes(:evening))
+    assert_match(/anderen Person gebucht/, flash[:alert])
+  end
+
+  test "FA-Opt-3 eigene Reservierung wird bei der Buchung aufgeloest" do
+    sign_in_as users(:other_customer)
+
+    assert_difference([ "Booking.count", "-SeatHold.count" ], 1) do
+      post bookings_path, params: { showtime_id: showtimes(:evening).id, seat_ids: [ seats(:b1).id ] }
+    end
+
+    assert_redirected_to bookings_path
   end
 end

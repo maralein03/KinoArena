@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_21_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_21_090000) do
   create_table "activity_logs", force: :cascade do |t|
     t.string "action", null: false
     t.datetime "created_at", null: false
@@ -57,6 +57,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_080000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "seat_holds", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.integer "seat_id", null: false
+    t.integer "showtime_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["expires_at"], name: "index_seat_holds_on_expires_at"
+    t.index ["seat_id"], name: "index_seat_holds_on_seat_id"
+    t.index ["showtime_id", "seat_id"], name: "index_seat_holds_on_showtime_and_seat", unique: true
+    t.index ["showtime_id"], name: "index_seat_holds_on_showtime_id"
+    t.index ["user_id"], name: "index_seat_holds_on_user_id"
+  end
+
   create_table "seats", force: :cascade do |t|
     t.integer "auditorium_id", null: false
     t.datetime "created_at", null: false
@@ -92,6 +106,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_080000) do
   add_foreign_key "bookings", "seats"
   add_foreign_key "bookings", "showtimes"
   add_foreign_key "bookings", "users"
+  add_foreign_key "seat_holds", "seats"
+  add_foreign_key "seat_holds", "showtimes"
+  add_foreign_key "seat_holds", "users"
   add_foreign_key "seats", "auditoria"
   add_foreign_key "showtimes", "auditoria"
   add_foreign_key "showtimes", "movies"

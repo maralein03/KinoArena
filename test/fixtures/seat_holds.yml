@@ -1,0 +1,5 @@
+one:
+  showtime: evening
+  seat: b1
+  user: other_customer
+  expires_at: <%= 4.minutes.from_now %>

@@ -14,6 +14,7 @@ class BookingsController < ApplicationController
 
   def create
     @showtime = Showtime.find(params[:showtime_id])
+    SeatHold.release_expired!
     seat_ids = Array(params[:seat_ids]).reject(&:blank?)
 
     if seat_ids.empty?
@@ -24,10 +25,15 @@ class BookingsController < ApplicationController
     bookings = build_bookings(@showtime, seat_ids)
     authorize bookings.first
 
-    Booking.transaction { bookings.each(&:save!) }
+    seats = bookings.map(&:seat)
+    Booking.transaction do
+      bookings.each(&:save!)
+      @showtime.seat_holds.where(seat_id: seats.map(&:id)).delete_all
+    end
 
+    SeatBroadcast.seats_changed(@showtime, seats)
     log_activity("booking_created", target: @showtime,
-                 description: "#{bookings.size} Ticket(s) gebucht: #{bookings.map { |b| b.seat.label }.join(', ')}")
+                 description: "#{bookings.size} Ticket(s) gebucht: #{seats.map(&:label).join(', ')}")
 
     redirect_to bookings_path, notice: "Buchung erfolgreich. Deine Tickets sind bereit."
   rescue ActiveRecord::RecordNotUnique
@@ -45,10 +51,11 @@ class BookingsController < ApplicationController
     @booking = Booking.find(params[:id])
     authorize @booking
     showtime = @booking.showtime
-    seat_label = @booking.seat.label
+    seat = @booking.seat
     @booking.destroy!
 
-    log_activity("booking_cancelled", target: showtime, description: "Ticket #{seat_label} storniert")
+    SeatBroadcast.seat_changed(showtime, seat)
+    log_activity("booking_cancelled", target: showtime, description: "Ticket #{seat.label} storniert")
     redirect_to bookings_path, notice: "Ticket wurde storniert."
   end
 
@@ -60,6 +67,18 @@ class BookingsController < ApplicationController
     if seats.size != seat_ids.size
       raise ActiveRecord::RecordInvalid, Booking.new.tap { |b|
         b.errors.add(:seat, "gehoert nicht zum Saal dieser Vorstellung")
+      }
+    end
+
+    reserved_by_others = showtime.seat_holds.active
+                                 .where(seat_id: seats.map(&:id))
+                                 .where.not(user_id: current_user.id)
+                                 .includes(:seat)
+
+    if reserved_by_others.any?
+      raise ActiveRecord::RecordInvalid, Booking.new.tap { |b|
+        b.errors.add(:seat, "#{reserved_by_others.map { |h| h.seat.label }.join(', ')} " \
+                            "wird gerade von einer anderen Person gebucht")
       }
     end
 

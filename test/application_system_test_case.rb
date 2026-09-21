@@ -14,4 +14,11 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     fill_in "Passwort", with: password
     click_button "Anmelden"
   end
+
+  private
+
+  # turbo-rails wartet nach jedem visit auf verbundene Cable-Streams; ohne JS-Treiber gibt es die nie.
+  def connect_turbo_cable_stream_sources
+    super unless page.driver.is_a?(Capybara::RackTest::Driver)
+  end
 end

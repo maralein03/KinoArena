@@ -43,7 +43,10 @@ erDiagram
     AUDITORIUM ||--o{ SHOWTIME : "beherbergt"
     AUDITORIUM ||--o{ SEAT : "enthält"
     SHOWTIME ||--o{ BOOKING : "wird gebucht als"
+    SHOWTIME ||--o{ SEAT_HOLD : "wird reserviert in"
     SEAT ||--o{ BOOKING : "wird belegt durch"
+    SEAT ||--o{ SEAT_HOLD : "wird reserviert als"
+    USER ||--o{ SEAT_HOLD : "reserviert"
 
     USER {
         int id PK
@@ -86,6 +89,13 @@ erDiagram
         int seat_id FK
         string qr_code_token UK
         decimal total_price
+    }
+    SEAT_HOLD {
+        int id PK
+        int user_id FK
+        int showtime_id FK
+        int seat_id FK
+        datetime expires_at "5 Minuten"
     }
     ACTIVITY_LOG {
         int id PK
@@ -136,6 +146,37 @@ rescue_from ActiveRecord::StaleObjectError, with: :handle_stale_object
 
 Der zweite Administrator erhält HTTP 409 und den Hinweis, dass die Daten zwischenzeitlich
 geändert wurden – statt fremde Änderungen stillschweigend zu überschreiben.
+
+### Stufe 3 – Temporäre Reservierung mit Echtzeit-Anzeige
+
+Damit Konflikte gar nicht erst entstehen, wird ein Sitzplatz bereits **beim Anklicken**
+für 5 Minuten reserviert (`seat_holds`). Auch diese Tabelle trägt einen Unique-Index
+auf `[showtime_id, seat_id]`.
+
+Ablauf bei zwei gleichzeitigen Kunden:
+
+1. Anna klickt Platz G9 → `POST /showtimes/:id/seat_holds` legt eine Reservierung an
+2. Der Server sendet per Turbo Stream ein Update an **alle** Zuschauer der Vorstellung
+3. Bei Ben wechselt derselbe Platz **sofort** auf goldgelb und wird deaktiviert
+4. Anna bucht → die Reservierung wird in eine Buchung überführt, der Platz gilt als belegt
+5. Bricht Anna ab, läuft die Reservierung nach 5 Minuten ab und der Platz wird wieder frei
+
+Die Anzeige ist nur die Komfortschicht. Auch wer die Oberfläche umgeht, wird
+serverseitig gestoppt:
+
+```ruby
+# app/controllers/bookings_controller.rb
+reserved_by_others = showtime.seat_holds.active
+                             .where(seat_id: seats.map(&:id))
+                             .where.not(user_id: current_user.id)
+```
+
+| Sitzplatz-Zustand | Darstellung |
+|---|---|
+| Frei | Grau, anklickbar |
+| Eigene Reservierung | Rot, mit Countdown |
+| Fremde Reservierung | Goldgelb mit Schloss, deaktiviert |
+| Gebucht | Dunkel mit × |
 
 ---
 
@@ -242,6 +283,7 @@ SYSTEM_TEST_DRIVER=selenium bin/rails test:system
 | Bereich | Datei |
 |---|---|
 | Doppelbuchung (Unique-Index) | `test/models/booking_test.rb` |
+| Temporäre Reservierung | `test/models/seat_hold_test.rb`, `test/controllers/seat_holds_controller_test.rb` |
 | Optimistic Locking | `test/models/showtime_test.rb`, `test/controllers/admin/movies_controller_test.rb` |
 | Zugriffskontrolle | `test/controllers/users_controller_test.rb`, `test/system/admin_area_test.rb` |
 | Buchungsablauf End-to-End | `test/system/booking_flow_test.rb` |
@@ -269,6 +311,7 @@ bin/bundler-audit check     # Bekannte Schwachstellen in Gems
 | FA-5 Filmverwaltung | `Admin::MoviesController` |
 | FA-6 Spielplanverwaltung | `Admin::ShowtimesController` |
 | FA-Opt-1 QR-Code | `BookingsHelper#qr_code_svg` |
+| FA-Opt-3 Temporäre Reservierung | `SeatHold`, `SeatHoldsController`, Turbo Streams |
 | NFA-1 Keine Doppelbuchungen | Unique-Index `[showtime_id, seat_id]` |
 | NFA-2 Optimistic Locking | `lock_version` auf `movies` und `showtimes` |
 | NFA-4 Access Control | Pundit-Policies, `require_admin` |
@@ -279,7 +322,6 @@ bin/bundler-audit check     # Bekannte Schwachstellen in Gems
 | Anforderung | Begründung |
 |---|---|
 | FA-Opt-2 Zahlungs-Checkout | Als optional deklariert; kein echter Zahlungsanbieter im Schulkontext |
-| FA-Opt-3 Temporäre Reservierung | Als optional deklariert; erfordert Hintergrundjobs zum Freigeben abgelaufener Reservationen |
 
 ---
 

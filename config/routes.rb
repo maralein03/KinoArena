@@ -12,7 +12,10 @@ Rails.application.routes.draw do
   # FA-2/FA-3/FA-4: Kunde
   resources :users, only: [ :index, :show, :edit, :update, :destroy ]
   resources :movies, only: [ :show ]
-  resources :showtimes, only: [ :index, :show ]
+  resources :showtimes, only: [ :index, :show ] do
+    # FA-Opt-3: temporaere Sitzplatzreservierung
+    resources :seat_holds, only: [ :create, :destroy ]
+  end
   resources :bookings, only: [ :index, :show, :create, :destroy ]
 
   # FA-5/FA-6 + Aktivitaetsprotokoll: Admin
