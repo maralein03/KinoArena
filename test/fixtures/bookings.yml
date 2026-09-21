@@ -1,15 +1,8 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  user: one
-  showtime: one
-  seat: one
-  qr_code_token: MyString
-  total_price: 9.99
-
-two:
-  user: two
-  showtime: two
-  seat: two
-  qr_code_token: MyString
-  total_price: 9.99
+customer_a1:
+  user: customer
+  showtime: evening
+  seat: a1
+  qr_code_token: token-customer-a1
+  total_price: 18.5

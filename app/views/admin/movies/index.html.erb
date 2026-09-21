@@ -1,0 +1,39 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Filmverwaltung</h1>
+    <%= link_to "Neuer Film", new_admin_movie_path,
+          class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded" %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-3 text-left">Titel</th>
+          <th class="px-4 py-3 text-left">Dauer</th>
+          <th class="px-4 py-3 text-left">Vorstellungen</th>
+          <th class="px-4 py-3 text-left">Version</th>
+          <th class="px-4 py-3 text-right">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% @movies.each do |movie| %>
+          <tr>
+            <td class="px-4 py-3 font-medium text-gray-800"><%= movie.title %></td>
+            <td class="px-4 py-3 text-gray-600"><%= movie.duration_minutes %> Min.</td>
+            <td class="px-4 py-3 text-gray-600"><%= movie.showtimes.count %></td>
+            <td class="px-4 py-3 text-gray-400">v<%= movie.lock_version %></td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-3">
+                <%= link_to "Bearbeiten", edit_admin_movie_path(movie), class: "text-indigo-600 hover:underline" %>
+                <%= button_to "Loeschen", admin_movie_path(movie), method: :delete,
+                      form: { data: { turbo_confirm: "Film \"#{movie.title}\" wirklich loeschen?" } },
+                      class: "text-red-600 hover:underline" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

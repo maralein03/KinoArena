@@ -1,0 +1,45 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Spielplanverwaltung</h1>
+    <%= link_to "Neue Vorstellung", new_admin_showtime_path,
+          class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded" %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-3 text-left">Film</th>
+          <th class="px-4 py-3 text-left">Saal</th>
+          <th class="px-4 py-3 text-left">Beginn</th>
+          <th class="px-4 py-3 text-left">Preis</th>
+          <th class="px-4 py-3 text-left">Gebucht</th>
+          <th class="px-4 py-3 text-left">Version</th>
+          <th class="px-4 py-3 text-right">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% @showtimes.each do |showtime| %>
+          <tr>
+            <td class="px-4 py-3 font-medium text-gray-800"><%= showtime.movie.title %></td>
+            <td class="px-4 py-3 text-gray-600"><%= showtime.auditorium.name %></td>
+            <td class="px-4 py-3 text-gray-600"><%= showtime.start_time.strftime("%d.%m.%Y %H:%M") %></td>
+            <td class="px-4 py-3 text-gray-600">CHF <%= sprintf("%.2f", showtime.price) %></td>
+            <td class="px-4 py-3 text-gray-600">
+              <%= showtime.bookings.count %> / <%= showtime.auditorium.seats.count %>
+            </td>
+            <td class="px-4 py-3 text-gray-400">v<%= showtime.lock_version %></td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-3">
+                <%= link_to "Bearbeiten", edit_admin_showtime_path(showtime), class: "text-indigo-600 hover:underline" %>
+                <%= button_to "Loeschen", admin_showtime_path(showtime), method: :delete,
+                      form: { data: { turbo_confirm: "Vorstellung wirklich loeschen? Alle Buchungen werden entfernt." } },
+                      class: "text-red-600 hover:underline" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

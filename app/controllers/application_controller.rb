@@ -1,7 +1,9 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
 
-  helper_method :current_user, :logged_in?
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+
+  helper_method :current_user, :logged_in?, :admin?
 
   private
 
@@ -15,10 +17,39 @@ class ApplicationController < ActionController::Base
     current_user.present?
   end
 
+  def admin?
+    current_user&.admin?
+  end
+
   def require_user
     unless logged_in?
       flash[:alert] = "Bitte melde dich zuerst an."
       redirect_to login_path
     end
+  end
+
+  def require_admin
+    return require_user unless logged_in?
+
+    user_not_authorized unless admin?
+  end
+
+  def pundit_user
+    current_user
+  end
+
+  def log_activity(action, target: nil, description: nil)
+    ActivityLog.record(
+      action: action,
+      user: current_user,
+      target: target,
+      description: description,
+      ip_address: request.remote_ip
+    )
+  end
+
+  def user_not_authorized
+    flash[:alert] = "Zugriff verweigert. Du hast keine Berechtigung fuer diese Seite."
+    redirect_to(request.referer.presence || root_path)
   end
 end

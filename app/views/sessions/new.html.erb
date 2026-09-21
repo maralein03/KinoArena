@@ -1,0 +1,23 @@
+<div class="max-w-md mx-auto bg-white rounded-lg shadow p-8">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Anmelden</h1>
+
+  <%= form_with url: login_path, method: :post, class: "space-y-4" do |f| %>
+    <div>
+      <%= f.label :email_address, "E-Mail-Adresse", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.email_field :email_address, value: @email_address, required: true, autofocus: true,
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :password, "Passwort", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.password_field :password, required: true,
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <%= f.submit "Anmelden", class: "w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded cursor-pointer" %>
+  <% end %>
+
+  <p class="mt-6 text-sm text-gray-600">
+    Noch kein Konto? <%= link_to "Jetzt registrieren", signup_path, class: "text-indigo-600 hover:underline" %>
+  </p>
+</div>

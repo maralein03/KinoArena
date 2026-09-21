@@ -1,0 +1,29 @@
+<nav class="bg-indigo-900 text-white shadow">
+  <div class="container mx-auto px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-6">
+      <%= link_to "KinoArena", root_path, class: "text-xl font-bold tracking-wide" %>
+      <%= link_to "Programm", showtimes_path, class: "hover:text-indigo-200" %>
+      <% if logged_in? %>
+        <%= link_to "Meine Tickets", bookings_path, class: "hover:text-indigo-200" %>
+      <% end %>
+      <% if admin? %>
+        <%= link_to "Filme", admin_movies_path, class: "hover:text-indigo-200" %>
+        <%= link_to "Spielplan", admin_showtimes_path, class: "hover:text-indigo-200" %>
+        <%= link_to "Benutzer", users_path, class: "hover:text-indigo-200" %>
+        <%= link_to "Protokoll", admin_activity_logs_path, class: "hover:text-indigo-200" %>
+      <% end %>
+    </div>
+
+    <div class="flex items-center gap-3 text-sm">
+      <% if logged_in? %>
+        <%= link_to current_user.name, user_path(current_user), class: "hover:text-indigo-200" %>
+        <span class="px-2 py-0.5 rounded bg-indigo-700 text-xs"><%= current_user.role_name %></span>
+        <%= button_to "Abmelden", logout_path, method: :delete,
+              class: "bg-red-500 hover:bg-red-600 px-3 py-1 rounded" %>
+      <% else %>
+        <%= link_to "Anmelden", login_path, class: "bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded" %>
+        <%= link_to "Registrieren", signup_path, class: "bg-green-600 hover:bg-green-700 px-3 py-1 rounded" %>
+      <% end %>
+    </div>
+  </div>
+</nav>

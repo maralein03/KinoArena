@@ -1,4 +1,43 @@
-<div>
-  <h1 class="font-bold text-4xl">Users#edit</h1>
-  <p>Find me in app/views/users/edit.html.erb</p>
+<div class="max-w-md mx-auto bg-white rounded-lg shadow p-8">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Profil bearbeiten</h1>
+
+  <%= render "shared/errors", record: @user %>
+
+  <%= form_with model: @user, url: user_path(@user), method: :patch, class: "space-y-4" do |f| %>
+    <div>
+      <%= f.label :name, "Name", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :name, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :email_address, "E-Mail-Adresse", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.email_field :email_address, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <div class="border-t pt-4">
+      <p class="text-sm text-gray-500 mb-3">Passwort nur ausfuellen, wenn du es aendern moechtest.</p>
+
+      <%= f.label :password, "Neues Passwort", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.password_field :password, autocomplete: "new-password",
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+
+      <%= f.label :password_confirmation, "Neues Passwort bestaetigen", class: "block text-sm font-medium text-gray-700 mt-3" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password",
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <% if policy(@user).change_role? %>
+      <div class="border-t pt-4">
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <%= f.check_box :admin, class: "rounded border-gray-300" %>
+          Administratorrechte vergeben
+        </label>
+      </div>
+    <% end %>
+
+    <div class="flex gap-3">
+      <%= f.submit "Speichern", class: "bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded cursor-pointer" %>
+      <%= link_to "Abbrechen", user_path(@user), class: "px-4 py-2 rounded border border-gray-300 text-gray-700" %>
+    </div>
+  <% end %>
 </div>

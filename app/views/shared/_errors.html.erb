@@ -1,0 +1,12 @@
+<% if record.errors.any? %>
+  <div class="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-red-800">
+    <p class="font-semibold mb-1">
+      Bitte korrigiere <%= pluralize(record.errors.count, "Fehler", plural: "Fehler") %>:
+    </p>
+    <ul class="list-disc list-inside text-sm">
+      <% record.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
