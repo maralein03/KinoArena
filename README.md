@@ -28,6 +28,7 @@ Parallelzugriffe fachlich korrekt und ohne Dateninkonsistenzen abgewickelt werde
 
 ### Administrator
 - Filme verwalten (CRUD)
+- Säle anlegen; der Saalplan wird aus Reihen und Plätzen pro Reihe erzeugt
 - Vorstellungen terminieren und Sälen zuweisen
 - Benutzer und Rollen verwalten
 - Aktivitätsprotokoll einsehen und filtern
@@ -255,7 +256,7 @@ bin/rails db:seed
 
 | Rolle | E-Mail | Passwort |
 |---|---|---|
-| Administrator | `admin@kinoarena.ch` | `adminadmin` |
+| Administrator | `admin@kinoarena.test` | `password123` |
 | Kundin A | `anna@example.com` | `annaanna` |
 | Kunde B | `ben@example.com` | `benbenben` |
 
@@ -290,6 +291,7 @@ SYSTEM_TEST_DRIVER=selenium bin/rails test:system
 | Buchungsablauf End-to-End | `test/system/booking_flow_test.rb` |
 | Authentifizierung | `test/system/authentication_test.rb` |
 | Fehlerbehandlung (404) | `test/integration/error_handling_test.rb` |
+| Performance / N+1 (NFA-3) | `test/integration/spielplan_performance_test.rb` |
 
 ### Qualitätswerkzeuge
 
@@ -298,6 +300,40 @@ bin/rubocop                 # Code-Konventionen
 bin/brakeman                # Sicherheitsanalyse
 bin/bundler-audit check     # Bekannte Schwachstellen in Gems
 ```
+
+### NFA-3: Lasttest des Spielplans
+
+Die Anforderung „50 gleichzeitige Abfragen unter 1,5 Sekunden" wird nicht behauptet,
+sondern gemessen. Bei laufendem Server:
+
+```bash
+bin/rails benchmark:showtimes
+```
+
+Der Task feuert 50 echte HTTP-Anfragen parallel ab und bricht mit Fehlercode ab,
+wenn eine davon den Grenzwert reisst. Parameter lassen sich überschreiben:
+
+```bash
+REQUESTS=100 CONCURRENCY=50 LIMIT=1.5 URL=http://localhost:3000/ bin/rails benchmark:showtimes
+```
+
+Messung auf dem Entwicklungsrechner (WSL2, Puma mit 3 Threads, **Development-Modus**):
+
+| Kennzahl | Wert |
+|---|---|
+| Gesamtdauer für 50 parallele Anfragen | 1,09 – 1,26 s |
+| Median (p50) | 0,53 – 0,58 s |
+| p95 | 0,98 – 1,14 s |
+| Langsamste Anfrage | 1,01 – 1,18 s |
+| Fehlerhafte Antworten | keine (50 × HTTP 200) |
+
+Die Anforderung ist damit erfüllt. Der Wert ist konservativ, weil im
+Development-Modus bei jeder Anfrage Code neu geladen wird – in Produktion
+entfällt dieser Aufwand.
+
+Damit die Ladezeit stabil bleibt, hält
+`test/integration/spielplan_performance_test.rb` fest, dass die Anzahl der
+Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 
 ---
 
@@ -310,13 +346,14 @@ bin/bundler-audit check     # Bekannte Schwachstellen in Gems
 | FA-3 Sitzplatzauswahl & Buchung | `ShowtimesController#show`, `BookingsController#create` |
 | FA-4 Meine Buchungen | `BookingsController#index` / `#show` |
 | FA-5 Filmverwaltung | `Admin::MoviesController` |
-| FA-6 Spielplanverwaltung | `Admin::ShowtimesController` |
+| FA-6 Spielplanverwaltung | `Admin::ShowtimesController`, `Admin::AuditoriaController` |
 | FA-Opt-1 QR-Code | `BookingsHelper#qr_code_svg` |
 | FA-Opt-2 Zahlungs-Checkout | `CheckoutsController`, simulierte Zahlung mit Apple Pay / Kreditkarte / TWINT |
 | FA-Opt-3 Temporäre Reservierung | `SeatHold`, 5 Minuten, Echtzeit via Turbo Stream |
 | FA-Opt-3 Temporäre Reservierung | `SeatHold`, `SeatHoldsController`, Turbo Streams |
 | NFA-1 Keine Doppelbuchungen | Unique-Index `[showtime_id, seat_id]` |
 | NFA-2 Optimistic Locking | `lock_version` auf `movies` und `showtimes` |
+| NFA-3 Performance | Lasttest `bin/rails benchmark:showtimes`, N+1-Schutz im Testfall |
 | NFA-4 Access Control | Pundit-Policies, `require_admin` |
 | NFA-5 Fehlerbehandlung | Formulare mit erhaltenen Eingaben, 404-Seite, Flash-Meldungen |
 

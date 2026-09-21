@@ -1,0 +1,37 @@
+<div class="mx-auto max-w-xl">
+  <div class="ka-card p-8">
+    <h1 class="text-2xl">Neuer Saal</h1>
+    <div class="mt-2 mb-6 h-0.5 w-12 bg-brand-500"></div>
+
+    <%= render "shared/errors", record: @auditorium %>
+
+    <%= form_with model: @auditorium, url: admin_auditoria_path, method: :post, class: "space-y-4" do |f| %>
+      <div>
+        <%= f.label :name, "Bezeichnung", class: "ka-label normal-case tracking-normal" %>
+        <%= f.text_field :name, placeholder: "Saal 3 – Lounge", class: "ka-input" %>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= f.label :row_count, "Anzahl Reihen", class: "ka-label normal-case tracking-normal" %>
+          <%= f.number_field :row_count, min: 1, max: Auditorium::MAX_ROWS, class: "ka-input" %>
+        </div>
+
+        <div>
+          <%= f.label :seats_per_row, "Plätze pro Reihe", class: "ka-label normal-case tracking-normal" %>
+          <%= f.number_field :seats_per_row, min: 1, max: 40, class: "ka-input" %>
+        </div>
+      </div>
+
+      <p class="rounded-lg border border-white/10 bg-ink-700/50 px-4 py-3 text-xs text-slate-400">
+        Die Reihen werden automatisch mit A, B, C … benannt und die Sitzplätze fortlaufend nummeriert.
+        Der Saalplan lässt sich später nicht mehr ändern, damit bestehende Buchungen gültig bleiben.
+      </p>
+
+      <div class="flex gap-3 pt-2">
+        <%= f.submit "Saal anlegen", class: "ka-btn-primary" %>
+        <%= link_to "Abbrechen", admin_auditoria_path, class: "ka-btn-ghost" %>
+      </div>
+    <% end %>
+  </div>
+</div>

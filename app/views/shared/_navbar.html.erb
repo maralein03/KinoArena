@@ -17,6 +17,7 @@
         <% end %>
         <% if admin? %>
           <%= link_to "Filme", admin_movies_path, class: nav_link_class(admin_movies_path) %>
+          <%= link_to "Säle", admin_auditoria_path, class: nav_link_class(admin_auditoria_path) %>
           <%= link_to "Spielplan", admin_showtimes_path, class: nav_link_class(admin_showtimes_path) %>
           <%= link_to "Benutzer", users_path, class: nav_link_class(users_path) %>
           <%= link_to "Protokoll", admin_activity_logs_path, class: nav_link_class(admin_activity_logs_path) %>

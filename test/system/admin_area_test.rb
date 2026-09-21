@@ -5,8 +5,24 @@ class AdminAreaTest < ApplicationSystemTestCase
     sign_in_as users(:customer)
 
     assert_no_link "Spielplan"
+    assert_no_link "Säle"
     assert_no_link "Benutzer"
     assert_no_link "Protokoll"
+  end
+
+  test "Admin legt einen Saal samt Saalplan an" do
+    sign_in_as users(:admin)
+
+    click_on "Säle"
+    click_on "Neuer Saal"
+
+    fill_in "Bezeichnung", with: "Saal 3 – Lounge"
+    fill_in "Anzahl Reihen", with: "4"
+    fill_in "Plätze pro Reihe", with: "6"
+    click_button "Saal anlegen"
+
+    assert_text "24 Sitzplätzen angelegt"
+    assert_text "Saal 3 – Lounge"
   end
 
   test "NFA-4 Kunde wird von der Filmverwaltung abgewiesen" do

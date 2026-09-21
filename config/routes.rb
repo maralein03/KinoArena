@@ -24,6 +24,7 @@ Rails.application.routes.draw do
   namespace :admin do
     root "movies#index"
     resources :movies, except: [ :show ]
+    resources :auditoria, except: [ :show ], controller: "auditoria"
     resources :showtimes, except: [ :show ]
     resources :activity_logs, only: [ :index ]
   end

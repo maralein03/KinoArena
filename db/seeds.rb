@@ -1,9 +1,9 @@
 # Idempotente Beispieldaten fuer KinoArena.
 # Ausfuehren mit: bin/rails db:seed
 
-admin = User.find_or_initialize_by(email_address: "admin@kinoarena.ch")
+admin = User.find_or_initialize_by(email_address: "admin@kinoarena.test")
 admin.assign_attributes(name: "Mara Spichiger", admin: true)
-admin.password = "adminadmin" if admin.new_record?
+admin.password = "password123" if admin.new_record?
 admin.save!
 
 # Zwei Kunden, um die Doppelbuchungssperre (NFA-1) live vorzufuehren.
@@ -66,19 +66,13 @@ movies = [
 end
 
 auditoria = [
-  { name: "Saal 1 – Grand", rows: ("A".."J").to_a, seats_per_row: 14 },
-  { name: "Saal 2 – Studio", rows: ("A".."F").to_a, seats_per_row: 10 }
+  { name: "Saal 1 – Grand", row_count: 10, seats_per_row: 14 },
+  { name: "Saal 2 – Studio", row_count: 6, seats_per_row: 10 }
 ].map do |config|
   auditorium = Auditorium.find_or_initialize_by(name: config[:name])
-  auditorium.total_seats = config[:rows].size * config[:seats_per_row]
+  # Sitzplaetze werden nur beim erstmaligen Anlegen erzeugt.
+  auditorium.assign_attributes(config.except(:name)) if auditorium.new_record?
   auditorium.save!
-
-  config[:rows].each do |row|
-    (1..config[:seats_per_row]).each do |number|
-      Seat.find_or_create_by!(auditorium: auditorium, row: row, number: number)
-    end
-  end
-
   auditorium
 end
 
