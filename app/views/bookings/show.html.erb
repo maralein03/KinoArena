@@ -1,0 +1,22 @@
+<div class="max-w-md mx-auto bg-white rounded-lg shadow p-8">
+  <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">KinoArena Ticket</p>
+  <h1 class="text-2xl font-bold text-indigo-900 mb-4"><%= @booking.showtime.movie.title %></h1>
+
+  <dl class="space-y-2 text-sm text-gray-700">
+    <div class="flex justify-between"><dt>Datum</dt><dd><%= @booking.showtime.start_time.strftime("%d.%m.%Y") %></dd></div>
+    <div class="flex justify-between"><dt>Beginn</dt><dd><%= @booking.showtime.start_time.strftime("%H:%M") %> Uhr</dd></div>
+    <div class="flex justify-between"><dt>Saal</dt><dd><%= @booking.showtime.auditorium.name %></dd></div>
+    <div class="flex justify-between"><dt>Reihe</dt><dd><%= @booking.seat.row %></dd></div>
+    <div class="flex justify-between"><dt>Platz</dt><dd><%= @booking.seat.number %></dd></div>
+    <div class="flex justify-between"><dt>Preis</dt><dd>CHF <%= sprintf("%.2f", @booking.total_price) %></dd></div>
+    <div class="flex justify-between"><dt>Gebucht am</dt><dd><%= @booking.created_at.strftime("%d.%m.%Y %H:%M") %></dd></div>
+  </dl>
+
+  <div class="mt-6 border-t pt-4 text-center">
+    <p class="font-mono text-xs break-all text-gray-500"><%= @booking.qr_code_token %></p>
+  </div>
+
+  <p class="mt-6 text-center">
+    <%= link_to "Zurueck zu meinen Tickets", bookings_path, class: "text-indigo-600 hover:underline text-sm" %>
+  </p>
+</div>

@@ -1,11 +1,26 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  auditorium: one
-  row: MyString
+a1:
+  auditorium: hall_one
+  row: A
   number: 1
 
-two:
-  auditorium: two
-  row: MyString
+a2:
+  auditorium: hall_one
+  row: A
+  number: 2
+
+b1:
+  auditorium: hall_one
+  row: B
+  number: 1
+
+b2:
+  auditorium: hall_one
+  row: B
+  number: 2
+
+other_a1:
+  auditorium: hall_two
+  row: A
   number: 1

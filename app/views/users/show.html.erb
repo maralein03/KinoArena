@@ -1,4 +1,53 @@
-<div>
-  <h1 class="font-bold text-4xl">Users#show</h1>
-  <p>Find me in app/views/users/show.html.erb</p>
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-lg shadow p-8">
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800"><%= @user.name %></h1>
+        <p class="text-gray-600"><%= @user.email_address %></p>
+        <span class="inline-block mt-2 px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 text-xs">
+          <%= @user.role_name %>
+        </span>
+      </div>
+
+      <div class="flex gap-2">
+        <% if policy(@user).update? %>
+          <%= link_to "Bearbeiten", edit_user_path(@user),
+                class: "bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-sm" %>
+        <% end %>
+        <% if policy(@user).destroy? %>
+          <%= button_to "Konto loeschen", user_path(@user), method: :delete,
+                form: { data: { turbo_confirm: "Konto wirklich unwiderruflich loeschen?" } },
+                class: "bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm" %>
+        <% end %>
+      </div>
+    </div>
+
+    <dl class="grid grid-cols-2 gap-3 text-sm text-gray-700 border-t pt-4">
+      <dt class="font-medium">Registriert seit</dt>
+      <dd><%= @user.created_at.strftime("%d.%m.%Y") %></dd>
+      <dt class="font-medium">Gebuchte Tickets</dt>
+      <dd><%= @bookings.size %></dd>
+    </dl>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-8 mt-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Buchungen</h2>
+
+    <% if @bookings.empty? %>
+      <p class="text-gray-600 text-sm">Noch keine Buchungen vorhanden.</p>
+    <% else %>
+      <ul class="divide-y">
+        <% @bookings.each do |booking| %>
+          <li class="py-3 flex justify-between text-sm">
+            <span>
+              <strong><%= booking.showtime.movie.title %></strong> &middot;
+              <%= booking.showtime.start_time.strftime("%d.%m.%Y %H:%M") %> &middot;
+              <%= booking.showtime.auditorium.name %>, Reihe <%= booking.seat.row %> Platz <%= booking.seat.number %>
+            </span>
+            <span class="text-gray-500">CHF <%= sprintf("%.2f", booking.total_price) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
 </div>

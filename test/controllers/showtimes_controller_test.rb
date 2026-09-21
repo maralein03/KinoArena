@@ -1,13 +1,14 @@
 require "test_helper"
 
 class ShowtimesControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get showtimes_index_url
+  test "Programm ist oeffentlich erreichbar" do
+    get showtimes_url
     assert_response :success
   end
 
-  test "should get show" do
-    get showtimes_show_url
+  test "Saalplan zeigt Vorstellung an" do
+    get showtime_url(showtimes(:evening))
     assert_response :success
+    assert_select "h1", text: /#{movies(:dune).title}/
   end
 end

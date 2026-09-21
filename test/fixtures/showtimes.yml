@@ -1,13 +1,15 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  movie: one
-  auditorium: one
-  start_time: 2026-09-21 08:16:01
-  price: 9.99
+evening:
+  movie: dune
+  auditorium: hall_one
+  start_time: <%= 3.days.from_now.change(hour: 19, min: 0) %>
+  price: 18.5
+  lock_version: 0
 
-two:
-  movie: two
-  auditorium: two
-  start_time: 2026-09-21 08:16:01
-  price: 9.99
+late:
+  movie: krimi
+  auditorium: hall_two
+  start_time: <%= 4.days.from_now.change(hour: 21, min: 0) %>
+  price: 15.0
+  lock_version: 0

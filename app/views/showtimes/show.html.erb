@@ -1,4 +1,67 @@
-<div>
-  <h1 class="font-bold text-4xl">Showtimes#show</h1>
-  <p>Find me in app/views/showtimes/show.html.erb</p>
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h1 class="text-3xl font-bold text-indigo-900 mb-2"><%= @showtime.movie.title %></h1>
+    <p class="text-gray-600 mb-4"><%= @showtime.movie.description %></p>
+    <div class="text-sm text-gray-500 grid grid-cols-2 gap-2">
+      <p><strong>Saal:</strong> <%= @showtime.auditorium.name %></p>
+      <p><strong>Dauer:</strong> <%= @showtime.movie.duration_minutes %> Min.</p>
+      <p><strong>Beginn:</strong> <%= @showtime.start_time.strftime("%d.%m.%Y %H:%M") %> Uhr</p>
+      <p><strong>Preis pro Ticket:</strong> CHF <%= sprintf("%.2f", @showtime.price) %></p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Sitzplatz waehlen</h2>
+
+    <% unless logged_in? %>
+      <p class="mb-4 rounded border border-yellow-300 bg-yellow-50 px-4 py-3 text-yellow-800">
+        Bitte <%= link_to "melde dich an", login_path, class: "underline font-semibold" %>,
+        um Tickets zu buchen.
+      </p>
+    <% end %>
+
+    <div class="mb-6 text-center bg-gray-800 text-white py-2 rounded">LEINWAND</div>
+
+    <%= form_with url: bookings_path, method: :post, local: true do |f| %>
+      <%= hidden_field_tag :showtime_id, @showtime.id %>
+
+      <div class="space-y-3">
+        <% @rows.each do |row, seats| %>
+          <div class="flex items-center gap-2">
+            <span class="w-8 font-semibold text-gray-600"><%= row %></span>
+            <div class="flex flex-wrap gap-2">
+              <% seats.each do |seat| %>
+                <% booked = @booked_seat_ids.include?(seat.id) %>
+                <% if booked %>
+                  <span class="w-10 h-10 flex items-center justify-center rounded bg-gray-300 text-gray-500 text-xs cursor-not-allowed"
+                        title="Bereits gebucht"><%= seat.number %></span>
+                <% else %>
+                  <label class="w-10 h-10 flex items-center justify-center rounded bg-green-100 border border-green-400 text-green-900 text-xs cursor-pointer hover:bg-green-200 has-[:checked]:bg-indigo-600 has-[:checked]:text-white">
+                    <%= check_box_tag "seat_ids[]", seat.id, false,
+                          disabled: !logged_in?, class: "sr-only" %>
+                    <%= seat.number %>
+                  </label>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="mt-6 flex items-center gap-4 text-xs text-gray-600">
+        <span class="flex items-center gap-1"><span class="w-4 h-4 rounded bg-green-100 border border-green-400 inline-block"></span> frei</span>
+        <span class="flex items-center gap-1"><span class="w-4 h-4 rounded bg-indigo-600 inline-block"></span> ausgewaehlt</span>
+        <span class="flex items-center gap-1"><span class="w-4 h-4 rounded bg-gray-300 inline-block"></span> gebucht</span>
+      </div>
+
+      <% if logged_in? %>
+        <%= f.submit "Jetzt verbindlich buchen",
+              class: "mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded cursor-pointer font-semibold" %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <p class="mt-4">
+    <%= link_to "Zurueck zum Programm", showtimes_path, class: "text-indigo-600 hover:underline" %>
+  </p>
 </div>

@@ -1,4 +1,43 @@
-<div>
-  <h1 class="font-bold text-4xl">Users#index</h1>
-  <p>Find me in app/views/users/index.html.erb</p>
+<div class="max-w-5xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Benutzerverwaltung</h1>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-3 text-left">Name</th>
+          <th class="px-4 py-3 text-left">E-Mail</th>
+          <th class="px-4 py-3 text-left">Rolle</th>
+          <th class="px-4 py-3 text-left">Tickets</th>
+          <th class="px-4 py-3 text-left">Registriert</th>
+          <th class="px-4 py-3 text-right">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% @users.each do |user| %>
+          <tr>
+            <td class="px-4 py-3"><%= link_to user.name, user_path(user), class: "text-indigo-600 hover:underline" %></td>
+            <td class="px-4 py-3 text-gray-700"><%= user.email_address %></td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded text-xs <%= user.admin? ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-700' %>">
+                <%= user.role_name %>
+              </span>
+            </td>
+            <td class="px-4 py-3 text-gray-700"><%= user.bookings.count %></td>
+            <td class="px-4 py-3 text-gray-500"><%= user.created_at.strftime("%d.%m.%Y") %></td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <%= link_to "Bearbeiten", edit_user_path(user), class: "text-indigo-600 hover:underline" %>
+                <% if policy(user).destroy? %>
+                  <%= button_to "Loeschen", user_path(user), method: :delete,
+                        form: { data: { turbo_confirm: "Konto #{user.email_address} wirklich loeschen?" } },
+                        class: "text-red-600 hover:underline" %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 </div>

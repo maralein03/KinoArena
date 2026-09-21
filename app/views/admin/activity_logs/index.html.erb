@@ -1,0 +1,58 @@
+<div class="max-w-6xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Aktivitaetsprotokoll</h1>
+
+  <%= form_with url: admin_activity_logs_path, method: :get,
+        class: "bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap items-end gap-4" do %>
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Aktion</label>
+      <%= select_tag :action_filter,
+            options_for_select(@actions, params[:action_filter]),
+            include_blank: "Alle Aktionen", class: "rounded border-gray-300 shadow-sm text-sm" %>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Benutzer</label>
+      <%= select_tag :user_id,
+            options_from_collection_for_select(@users, :id, :email_address, params[:user_id]),
+            include_blank: "Alle Benutzer", class: "rounded border-gray-300 shadow-sm text-sm" %>
+    </div>
+
+    <%= submit_tag "Filtern", class: "bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm cursor-pointer" %>
+    <%= link_to "Zuruecksetzen", admin_activity_logs_path, class: "text-sm text-gray-600 hover:underline" %>
+  <% end %>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-3 text-left">Zeitpunkt</th>
+          <th class="px-4 py-3 text-left">Benutzer</th>
+          <th class="px-4 py-3 text-left">Aktion</th>
+          <th class="px-4 py-3 text-left">Objekt</th>
+          <th class="px-4 py-3 text-left">Details</th>
+          <th class="px-4 py-3 text-left">IP</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% if @logs.empty? %>
+          <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Keine Eintraege gefunden.</td></tr>
+        <% end %>
+
+        <% @logs.each do |log| %>
+          <tr>
+            <td class="px-4 py-2 text-gray-500 whitespace-nowrap"><%= log.created_at.strftime("%d.%m.%Y %H:%M:%S") %></td>
+            <td class="px-4 py-2 text-gray-700"><%= log.actor_name %></td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-800 text-xs font-mono"><%= log.action %></span>
+            </td>
+            <td class="px-4 py-2 text-gray-600"><%= log.target_label %></td>
+            <td class="px-4 py-2 text-gray-600"><%= log.description %></td>
+            <td class="px-4 py-2 text-gray-400 font-mono text-xs"><%= log.ip_address %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="mt-3 text-xs text-gray-500">Es werden maximal die 200 neuesten Eintraege angezeigt.</p>
+</div>

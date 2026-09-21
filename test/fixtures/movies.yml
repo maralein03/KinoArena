@@ -1,11 +1,11 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  title: MyString
-  description: MyText
-  duration_minutes: 1
+dune:
+  title: Dune Test
+  description: Wuestenplanet-Abenteuer
+  duration_minutes: 155
 
-two:
-  title: MyString
-  description: MyText
-  duration_minutes: 1
+krimi:
+  title: Krimi Test
+  description: Spannender Schweizer Krimi
+  duration_minutes: 100

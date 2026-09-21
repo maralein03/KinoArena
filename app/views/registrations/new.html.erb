@@ -1,0 +1,37 @@
+<div class="max-w-md mx-auto bg-white rounded-lg shadow p-8">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Konto erstellen</h1>
+
+  <%= render "shared/errors", record: @user %>
+
+  <%= form_with model: @user, url: signup_path, method: :post, class: "space-y-4" do |f| %>
+    <div>
+      <%= f.label :name, "Name", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :name, required: true, autofocus: true,
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :email_address, "E-Mail-Adresse", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.email_field :email_address, required: true,
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :password, "Passwort (mind. 8 Zeichen)", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.password_field :password, required: true,
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :password_confirmation, "Passwort bestaetigen", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.password_field :password_confirmation, required: true,
+            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    </div>
+
+    <%= f.submit "Registrieren", class: "w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded cursor-pointer" %>
+  <% end %>
+
+  <p class="mt-6 text-sm text-gray-600">
+    Bereits registriert? <%= link_to "Anmelden", login_path, class: "text-indigo-600 hover:underline" %>
+  </p>
+</div>

@@ -1,0 +1,39 @@
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Meine Tickets</h1>
+
+  <% if @bookings.empty? %>
+    <div class="bg-white rounded-lg shadow p-8 text-center text-gray-600">
+      <p class="mb-4">Du hast noch keine Tickets gebucht.</p>
+      <%= link_to "Zum Programm", showtimes_path,
+            class: "inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded" %>
+    </div>
+  <% else %>
+    <div class="space-y-4">
+      <% @bookings.each do |booking| %>
+        <div class="bg-white rounded-lg shadow p-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-indigo-900"><%= booking.showtime.movie.title %></h2>
+            <p class="text-sm text-gray-600">
+              <%= booking.showtime.start_time.strftime("%d.%m.%Y %H:%M") %> Uhr &middot;
+              <%= booking.showtime.auditorium.name %>
+            </p>
+            <p class="text-sm text-gray-800 mt-1">
+              <strong>Reihe <%= booking.seat.row %>, Platz <%= booking.seat.number %></strong>
+              &middot; CHF <%= sprintf("%.2f", booking.total_price) %>
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <%= link_to "Ticket anzeigen", booking_path(booking),
+                  class: "bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-sm" %>
+            <% if policy(booking).destroy? %>
+              <%= button_to "Stornieren", booking_path(booking), method: :delete,
+                    form: { data: { turbo_confirm: "Ticket wirklich stornieren?" } },
+                    class: "bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

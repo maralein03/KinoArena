@@ -1,0 +1,33 @@
+<%= render "shared/errors", record: showtime %>
+
+<%= form_with model: showtime, url: url, method: method, class: "space-y-4" do |f| %>
+  <%# NFA-2: lock_version wird mitgesendet und von Rails geprueft %>
+  <%= f.hidden_field :lock_version %>
+
+  <div>
+    <%= f.label :movie_id, "Film", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.collection_select :movie_id, @movies, :id, :title, { include_blank: "Bitte waehlen" },
+          class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+  </div>
+
+  <div>
+    <%= f.label :auditorium_id, "Saal", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.collection_select :auditorium_id, @auditoria, :id, :name, { include_blank: "Bitte waehlen" },
+          class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+  </div>
+
+  <div>
+    <%= f.label :start_time, "Beginn", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.datetime_field :start_time, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+  </div>
+
+  <div>
+    <%= f.label :price, "Preis (CHF)", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.number_field :price, step: 0.05, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+  </div>
+
+  <div class="flex gap-3">
+    <%= f.submit submit_label, class: "bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded cursor-pointer" %>
+    <%= link_to "Abbrechen", admin_showtimes_path, class: "px-4 py-2 rounded border border-gray-300 text-gray-700" %>
+  </div>
+<% end %>
