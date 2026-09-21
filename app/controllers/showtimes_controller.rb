@@ -1,6 +1,8 @@
 class ShowtimesController < ApplicationController
   def index
-    @showtimes = Showtime.includes(:movie, :auditorium).upcoming
+    @showtimes = Showtime.upcoming
+    @movies = Movie.where(id: @showtimes.select(:movie_id)).order(:title)
+    @showtime_counts = @showtimes.group(:movie_id).count
   end
 
   def show
@@ -8,5 +10,6 @@ class ShowtimesController < ApplicationController
     @seats = @showtime.auditorium.seats.ordered
     @booked_seat_ids = @showtime.bookings.pluck(:seat_id).to_set
     @rows = @seats.group_by(&:row)
+    @seat_numbers = @seats.map(&:number).uniq.sort
   end
 end

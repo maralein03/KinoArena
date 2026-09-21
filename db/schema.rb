@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_21_070300) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_21_080000) do
   create_table "activity_logs", force: :cascade do |t|
     t.string "action", null: false
     t.datetime "created_at", null: false
@@ -52,6 +52,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_070300) do
     t.text "description"
     t.integer "duration_minutes"
     t.integer "lock_version", default: 0, null: false
+    t.string "poster_url"
     t.string "title"
     t.datetime "updated_at", null: false
   end

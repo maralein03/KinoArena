@@ -1,23 +1,40 @@
-<div class="max-w-md mx-auto bg-white rounded-lg shadow p-8">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">Anmelden</h1>
-
-  <%= form_with url: login_path, method: :post, class: "space-y-4" do |f| %>
-    <div>
-      <%= f.label :email_address, "E-Mail-Adresse", class: "block text-sm font-medium text-gray-700" %>
-      <%= f.email_field :email_address, value: @email_address, required: true, autofocus: true,
-            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+<div class="mx-auto max-w-sm">
+  <div class="ka-card p-8">
+    <div class="flex items-center gap-2.5">
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500">
+        <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm2 3v8h8V8H6zm10 0v2h2V8h-2zm0 4v2h2v-2h-2z"/>
+        </svg>
+      </span>
+      <span class="font-display text-xl text-white">Kino<span class="text-brand-500">Arena</span></span>
     </div>
 
-    <div>
-      <%= f.label :password, "Passwort", class: "block text-sm font-medium text-gray-700" %>
-      <%= f.password_field :password, required: true,
-            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    <p class="mt-4 text-sm text-slate-400">Willkommen zurück.</p>
+
+    <div class="mt-6 grid grid-cols-2 gap-1 rounded-lg bg-ink-700 p-1 text-sm">
+      <span class="rounded-md bg-brand-500 py-2 text-center font-medium text-white">Anmelden</span>
+      <%= link_to "Registrieren", signup_path, class: "rounded-md py-2 text-center text-slate-400 transition hover:text-white" %>
     </div>
 
-    <%= f.submit "Anmelden", class: "w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded cursor-pointer" %>
-  <% end %>
+    <%= form_with url: login_path, method: :post, class: "mt-6 space-y-4" do |f| %>
+      <div>
+        <%= f.label :email_address, "E-Mail", class: "ka-label normal-case tracking-normal" %>
+        <%= f.email_field :email_address, value: @email_address, required: true, autofocus: true,
+              placeholder: "anna@example.ch", class: "ka-input" %>
+      </div>
 
-  <p class="mt-6 text-sm text-gray-600">
-    Noch kein Konto? <%= link_to "Jetzt registrieren", signup_path, class: "text-indigo-600 hover:underline" %>
-  </p>
+      <div>
+        <%= f.label :password, "Passwort", class: "ka-label normal-case tracking-normal" %>
+        <%= f.password_field :password, required: true, placeholder: "••••••••", class: "ka-input" %>
+      </div>
+
+      <%= f.submit "Anmelden", class: "ka-btn-primary w-full py-3" %>
+    <% end %>
+
+    <% if Rails.env.development? %>
+      <p class="mt-5 text-center font-mono text-xs text-gold-400">
+        Demo: admin@kinoarena.ch / adminadmin
+      </p>
+    <% end %>
+  </div>
 </div>

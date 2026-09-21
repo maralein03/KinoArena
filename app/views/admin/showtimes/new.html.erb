@@ -1,4 +1,7 @@
-<div class="max-w-xl mx-auto bg-white rounded-lg shadow p-8">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">Neue Vorstellung</h1>
-  <%= render "form", showtime: @showtime, url: admin_showtimes_path, method: :post, submit_label: "Vorstellung anlegen" %>
+<div class="mx-auto max-w-xl">
+  <div class="ka-card p-8">
+    <h1 class="text-2xl">Neue Vorstellung</h1>
+    <div class="mt-2 mb-6 h-0.5 w-12 bg-brand-500"></div>
+    <%= render "form", showtime: @showtime, url: admin_showtimes_path, method: :post, submit_label: "Vorstellung anlegen" %>
+  </div>
 </div>

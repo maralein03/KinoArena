@@ -1,22 +1,74 @@
-<div class="max-w-md mx-auto bg-white rounded-lg shadow p-8">
-  <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">KinoArena Ticket</p>
-  <h1 class="text-2xl font-bold text-indigo-900 mb-4"><%= @booking.showtime.movie.title %></h1>
+<% showtime = @booking.showtime %>
 
-  <dl class="space-y-2 text-sm text-gray-700">
-    <div class="flex justify-between"><dt>Datum</dt><dd><%= @booking.showtime.start_time.strftime("%d.%m.%Y") %></dd></div>
-    <div class="flex justify-between"><dt>Beginn</dt><dd><%= @booking.showtime.start_time.strftime("%H:%M") %> Uhr</dd></div>
-    <div class="flex justify-between"><dt>Saal</dt><dd><%= @booking.showtime.auditorium.name %></dd></div>
-    <div class="flex justify-between"><dt>Reihe</dt><dd><%= @booking.seat.row %></dd></div>
-    <div class="flex justify-between"><dt>Platz</dt><dd><%= @booking.seat.number %></dd></div>
-    <div class="flex justify-between"><dt>Preis</dt><dd>CHF <%= sprintf("%.2f", @booking.total_price) %></dd></div>
-    <div class="flex justify-between"><dt>Gebucht am</dt><dd><%= @booking.created_at.strftime("%d.%m.%Y %H:%M") %></dd></div>
-  </dl>
+<div class="mx-auto max-w-md">
+  <div class="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-brand-500/15 via-ink-800 to-ink-800">
+    <div class="p-6">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500">
+            <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm2 3v8h8V8H6zm10 0v2h2V8h-2zm0 4v2h2v-2h-2z"/>
+            </svg>
+          </span>
+          <span class="font-display text-lg text-white">Kino<span class="text-brand-500">Arena</span></span>
+        </div>
 
-  <div class="mt-6 border-t pt-4 text-center">
-    <p class="font-mono text-xs break-all text-gray-500"><%= @booking.qr_code_token %></p>
+        <div class="text-right">
+          <span class="rounded-md border border-gold-400/40 bg-gold-400/10 px-2 py-0.5 font-mono text-xs text-gold-400">
+            Bestätigt
+          </span>
+          <p class="ka-label mt-1.5"><%= booking_reference(@booking) %></p>
+        </div>
+      </div>
+
+      <h1 class="mt-6 text-2xl"><%= showtime.movie.title %></h1>
+
+      <dl class="mt-5 grid grid-cols-3 gap-4 text-sm">
+        <div>
+          <dt class="ka-label">Datum</dt>
+          <dd class="mt-1 text-slate-200"><%= showtime_date(showtime.start_time) %></dd>
+        </div>
+        <div>
+          <dt class="ka-label">Uhrzeit</dt>
+          <dd class="mt-1 font-mono text-gold-400"><%= showtime.start_time.strftime("%H:%M") %></dd>
+        </div>
+        <div>
+          <dt class="ka-label">Saal</dt>
+          <dd class="mt-1 text-slate-200"><%= showtime.auditorium.name %></dd>
+        </div>
+      </dl>
+
+      <div class="mt-5">
+        <p class="ka-label">Sitzplatz</p>
+        <p class="mt-1.5"><span class="ka-chip text-sm"><%= @booking.seat.label %></span></p>
+      </div>
+    </div>
+
+    <div class="relative border-t border-dashed border-white/15">
+      <span class="absolute -left-3 -top-3 h-6 w-6 rounded-full bg-ink-950"></span>
+      <span class="absolute -right-3 -top-3 h-6 w-6 rounded-full bg-ink-950"></span>
+    </div>
+
+    <div class="flex items-center gap-5 p-6">
+      <div class="shrink-0 rounded-lg bg-white p-2">
+        <%= qr_code_svg(@booking.qr_code_token, size: 140) %>
+      </div>
+
+      <div>
+        <p class="text-sm text-slate-400">Diesen QR-Code an der Kinokasse vorzeigen.</p>
+        <p class="ka-label mt-4">Gesamtbetrag</p>
+        <p class="font-display text-3xl text-gold-400"><%= chf(@booking.total_price) %></p>
+      </div>
+    </div>
   </div>
 
-  <p class="mt-6 text-center">
-    <%= link_to "Zurueck zu meinen Tickets", bookings_path, class: "text-indigo-600 hover:underline text-sm" %>
+  <div class="mt-6 flex gap-3">
+    <%= link_to "Meine Tickets", bookings_path, class: "ka-btn-ghost flex-1" %>
+    <%= link_to "Weiteres buchen", root_path, class: "ka-btn-primary flex-1" %>
+  </div>
+
+  <p class="mt-5 text-center text-xs text-slate-500">
+    Gebucht am <%= l @booking.created_at, format: :short %> für
+    <span class="font-mono text-slate-400"><%= @booking.user.email_address %></span>
   </p>
 </div>

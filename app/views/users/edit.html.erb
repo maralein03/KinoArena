@@ -1,43 +1,46 @@
-<div class="max-w-md mx-auto bg-white rounded-lg shadow p-8">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">Profil bearbeiten</h1>
+<div class="mx-auto max-w-md">
+  <div class="ka-card p-8">
+    <h1 class="text-2xl">Profil bearbeiten</h1>
+    <div class="mt-2 mb-6 h-0.5 w-12 bg-brand-500"></div>
 
-  <%= render "shared/errors", record: @user %>
+    <%= render "shared/errors", record: @user %>
 
-  <%= form_with model: @user, url: user_path(@user), method: :patch, class: "space-y-4" do |f| %>
-    <div>
-      <%= f.label :name, "Name", class: "block text-sm font-medium text-gray-700" %>
-      <%= f.text_field :name, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
-    </div>
+    <%= form_with model: @user, url: user_path(@user), method: :patch, class: "space-y-4" do |f| %>
+      <div>
+        <%= f.label :name, "Name", class: "ka-label normal-case tracking-normal" %>
+        <%= f.text_field :name, class: "ka-input" %>
+      </div>
 
-    <div>
-      <%= f.label :email_address, "E-Mail-Adresse", class: "block text-sm font-medium text-gray-700" %>
-      <%= f.email_field :email_address, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
-    </div>
+      <div>
+        <%= f.label :email_address, "E-Mail", class: "ka-label normal-case tracking-normal" %>
+        <%= f.email_field :email_address, class: "ka-input" %>
+      </div>
 
-    <div class="border-t pt-4">
-      <p class="text-sm text-gray-500 mb-3">Passwort nur ausfuellen, wenn du es aendern moechtest.</p>
+      <div class="border-t border-white/5 pt-5">
+        <p class="text-xs text-slate-500">Passwort nur ausfüllen, wenn du es ändern möchtest.</p>
 
-      <%= f.label :password, "Neues Passwort", class: "block text-sm font-medium text-gray-700" %>
-      <%= f.password_field :password, autocomplete: "new-password",
-            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+        <div class="mt-3">
+          <%= f.label :password, "Neues Passwort", class: "ka-label normal-case tracking-normal" %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "ka-input" %>
+        </div>
 
-      <%= f.label :password_confirmation, "Neues Passwort bestaetigen", class: "block text-sm font-medium text-gray-700 mt-3" %>
-      <%= f.password_field :password_confirmation, autocomplete: "new-password",
-            class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
-    </div>
+        <div class="mt-3">
+          <%= f.label :password_confirmation, "Wiederholen", class: "ka-label normal-case tracking-normal" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "ka-input" %>
+        </div>
+      </div>
 
-    <% if policy(@user).change_role? %>
-      <div class="border-t pt-4">
-        <label class="flex items-center gap-2 text-sm text-gray-700">
-          <%= f.check_box :admin, class: "rounded border-gray-300" %>
+      <% if policy(@user).change_role? %>
+        <label class="flex items-center gap-2.5 border-t border-white/5 pt-5 text-sm text-slate-300">
+          <%= f.check_box :admin, class: "h-4 w-4 rounded border-white/20 bg-ink-700 text-brand-500 focus:ring-brand-500" %>
           Administratorrechte vergeben
         </label>
+      <% end %>
+
+      <div class="flex gap-3 pt-2">
+        <%= f.submit "Speichern", class: "ka-btn-primary flex-1" %>
+        <%= link_to "Abbrechen", user_path(@user), class: "ka-btn-ghost flex-1" %>
       </div>
     <% end %>
-
-    <div class="flex gap-3">
-      <%= f.submit "Speichern", class: "bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded cursor-pointer" %>
-      <%= link_to "Abbrechen", user_path(@user), class: "px-4 py-2 rounded border border-gray-300 text-gray-700" %>
-    </div>
-  <% end %>
+  </div>
 </div>

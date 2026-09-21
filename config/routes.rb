@@ -9,8 +9,9 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
-  # FA-3/FA-4: Kunde
+  # FA-2/FA-3/FA-4: Kunde
   resources :users, only: [ :index, :show, :edit, :update, :destroy ]
+  resources :movies, only: [ :show ]
   resources :showtimes, only: [ :index, :show ]
   resources :bookings, only: [ :index, :show, :create, :destroy ]
 

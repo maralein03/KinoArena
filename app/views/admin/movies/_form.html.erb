@@ -5,22 +5,29 @@
   <%= f.hidden_field :lock_version %>
 
   <div>
-    <%= f.label :title, "Titel", class: "block text-sm font-medium text-gray-700" %>
-    <%= f.text_field :title, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    <%= f.label :title, "Titel", class: "ka-label normal-case tracking-normal" %>
+    <%= f.text_field :title, class: "ka-input" %>
   </div>
 
   <div>
-    <%= f.label :description, "Beschreibung", class: "block text-sm font-medium text-gray-700" %>
-    <%= f.text_area :description, rows: 4, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+    <%= f.label :description, "Beschreibung", class: "ka-label normal-case tracking-normal" %>
+    <%= f.text_area :description, rows: 4, class: "ka-input" %>
   </div>
 
-  <div>
-    <%= f.label :duration_minutes, "Dauer (Minuten)", class: "block text-sm font-medium text-gray-700" %>
-    <%= f.number_field :duration_minutes, class: "mt-1 w-full rounded border-gray-300 shadow-sm" %>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <%= f.label :duration_minutes, "Dauer (Minuten)", class: "ka-label normal-case tracking-normal" %>
+      <%= f.number_field :duration_minutes, class: "ka-input" %>
+    </div>
+
+    <div>
+      <%= f.label :poster_url, "Poster-URL", class: "ka-label normal-case tracking-normal" %>
+      <%= f.url_field :poster_url, placeholder: "https://…", class: "ka-input" %>
+    </div>
   </div>
 
-  <div class="flex gap-3">
-    <%= f.submit submit_label, class: "bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded cursor-pointer" %>
-    <%= link_to "Abbrechen", admin_movies_path, class: "px-4 py-2 rounded border border-gray-300 text-gray-700" %>
+  <div class="flex gap-3 pt-2">
+    <%= f.submit submit_label, class: "ka-btn-primary" %>
+    <%= link_to "Abbrechen", admin_movies_path, class: "ka-btn-ghost" %>
   </div>
 <% end %>

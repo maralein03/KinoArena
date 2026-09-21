@@ -18,18 +18,28 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-gray-100 min-h-screen">
+  <body class="min-h-screen bg-ink-950">
     <%= render "shared/navbar" %>
 
-    <main class="container mx-auto mt-8 px-5 pb-16">
+    <%= yield :hero %>
+
+    <main class="mx-auto w-full max-w-6xl px-5 py-10">
       <%= render "shared/flash" %>
       <%= yield %>
     </main>
+
+    <footer class="border-t border-white/5 py-8 text-center">
+      <p class="ka-label">KinoArena &middot; Smart Cinema Booking</p>
+    </footer>
   </body>
 
 </html>
