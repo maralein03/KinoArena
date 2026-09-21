@@ -6,10 +6,16 @@ admin.assign_attributes(name: "Mara Spichiger", admin: true)
 admin.password = "adminadmin" if admin.new_record?
 admin.save!
 
-customer = User.find_or_initialize_by(email_address: "kunde@example.com")
-customer.assign_attributes(name: "Test Kunde", admin: false)
-customer.password = "kundekunde" if customer.new_record?
-customer.save!
+# Zwei Kunden, um die Doppelbuchungssperre (NFA-1) live vorzufuehren.
+[
+  { email_address: "anna@example.com", name: "Anna Kundin", password: "annaanna" },
+  { email_address: "ben@example.com",  name: "Ben Kunde",   password: "benbenben" }
+].each do |attrs|
+  customer = User.find_or_initialize_by(email_address: attrs[:email_address])
+  customer.assign_attributes(name: attrs[:name], admin: false)
+  customer.password = attrs[:password] if customer.new_record?
+  customer.save!
+end
 
 movies = [
   {

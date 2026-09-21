@@ -214,7 +214,11 @@ bin/rails db:seed
 | Rolle | E-Mail | Passwort |
 |---|---|---|
 | Administrator | `admin@kinoarena.ch` | `adminadmin` |
-| Kunde | `kunde@example.com` | `kundekunde` |
+| Kundin A | `anna@example.com` | `annaanna` |
+| Kunde B | `ben@example.com` | `benbenben` |
+
+Die beiden Kundenkonten dienen dazu, die Doppelbuchungssperre (NFA-1) in zwei
+getrennten Browser-Sitzungen vorzuführen.
 
 ---
 
