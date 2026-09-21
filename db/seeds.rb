@@ -77,20 +77,39 @@ auditoria = [
 end
 
 today = Time.zone.now.beginning_of_day
-[
+showtimes = [
   [ movies[0], auditoria[0], today + 18.hours,          14.50 ],
   [ movies[0], auditoria[0], today + 21.hours + 15.minutes, 14.50 ],
   [ movies[1], auditoria[1], today + 19.hours + 30.minutes, 16.00 ],
   [ movies[2], auditoria[1], today + 1.day + 20.hours, 16.50 ],
   [ movies[3], auditoria[0], today + 1.day + 15.hours, 12.00 ],
   [ movies[4], auditoria[0], today + 2.days + 19.hours, 18.00 ]
-].each do |movie, auditorium, start_time, price|
+].filter_map do |movie, auditorium, start_time, price|
   next if start_time.past?
 
   showtime = Showtime.find_or_initialize_by(movie: movie, auditorium: auditorium, start_time: start_time)
   showtime.price = price
   showtime.save!
+  showtime
+end
+
+# Vorbelegte Plaetze, damit der Saalplan belegte Sitze zeigt.
+# Feste Zufallssaat => bei jedem Seed dasselbe Muster.
+customers = User.where(admin: false).order(:id).to_a
+occupancy_rates = [ 0.45, 0.20, 0.60, 0.15, 0.35, 0.05 ]
+
+showtimes.each_with_index do |showtime, index|
+  seats = showtime.auditorium.seats.ordered.to_a
+  taken = seats.sample((seats.size * occupancy_rates[index % occupancy_rates.size]).round,
+                       random: Random.new(1000 + index))
+
+  taken.each_with_index do |seat, position|
+    Booking.find_or_create_by!(showtime: showtime, seat: seat) do |booking|
+      booking.user = customers[position % customers.size]
+    end
+  end
 end
 
 puts "Seed abgeschlossen: #{User.count} Benutzer, #{Movie.count} Filme, " \
-     "#{Auditorium.count} Saele, #{Seat.count} Sitze, #{Showtime.count} Vorstellungen."
+     "#{Auditorium.count} Saele, #{Seat.count} Sitze, #{Showtime.count} Vorstellungen, " \
+     "#{Booking.count} Buchungen."
