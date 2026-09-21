@@ -91,4 +91,30 @@ class BookingsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to bookings_path
   end
+
+  test "FA-Opt-2 Zahlungsmethode wird auf der Buchung gespeichert" do
+    sign_in_as users(:customer)
+
+    post bookings_path, params: {
+      showtime_id: showtimes(:evening).id,
+      seat_ids: [ seats(:a2).id ],
+      payment_method: "twint"
+    }
+
+    assert_equal "twint", Booking.last.payment_method
+    assert_equal "TWINT", Booking.last.payment_method_label
+  end
+
+  test "unbekannte Zahlungsmethode wird verworfen statt gespeichert" do
+    sign_in_as users(:customer)
+
+    post bookings_path, params: {
+      showtime_id: showtimes(:evening).id,
+      seat_ids: [ seats(:a2).id ],
+      payment_method: "bitcoin"
+    }
+
+    assert_nil Booking.last.payment_method
+    assert_redirected_to bookings_path
+  end
 end

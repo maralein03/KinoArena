@@ -22,6 +22,7 @@ Parallelzugriffe fachlich korrekt und ohne Dateninkonsistenzen abgewickelt werde
 - Konto erstellen, anmelden, abmelden
 - Filmprogramm und Spielzeiten einsehen
 - Freie Sitzplätze im virtuellen Saalplan auswählen und verbindlich buchen
+- Buchung bestätigen, Zahlungsmethode wählen und bezahlen (simuliert)
 - Tickets inklusive QR-Code abrufen und stornieren
 - Eigenes Profil bearbeiten
 
@@ -311,6 +312,8 @@ bin/bundler-audit check     # Bekannte Schwachstellen in Gems
 | FA-5 Filmverwaltung | `Admin::MoviesController` |
 | FA-6 Spielplanverwaltung | `Admin::ShowtimesController` |
 | FA-Opt-1 QR-Code | `BookingsHelper#qr_code_svg` |
+| FA-Opt-2 Zahlungs-Checkout | `CheckoutsController`, simulierte Zahlung mit Apple Pay / Kreditkarte / TWINT |
+| FA-Opt-3 Temporäre Reservierung | `SeatHold`, 5 Minuten, Echtzeit via Turbo Stream |
 | FA-Opt-3 Temporäre Reservierung | `SeatHold`, `SeatHoldsController`, Turbo Streams |
 | NFA-1 Keine Doppelbuchungen | Unique-Index `[showtime_id, seat_id]` |
 | NFA-2 Optimistic Locking | `lock_version` auf `movies` und `showtimes` |
@@ -321,7 +324,7 @@ bin/bundler-audit check     # Bekannte Schwachstellen in Gems
 
 | Anforderung | Begründung |
 |---|---|
-| FA-Opt-2 Zahlungs-Checkout | Als optional deklariert; kein echter Zahlungsanbieter im Schulkontext |
+| Echte Zahlungsabwicklung | Der Checkout simuliert die Zahlung bewusst. Eine Anbindung an einen echten Anbieter erfordert Vertragsdaten und PCI-DSS-Auflagen, die im Schulkontext nicht erfüllbar sind. Gespeichert wird nur die gewählte Zahlungsart. |
 
 ---
 

@@ -58,6 +58,9 @@
         <p class="text-sm text-slate-400">Diesen QR-Code an der Kinokasse vorzeigen.</p>
         <p class="ka-label mt-4">Gesamtbetrag</p>
         <p class="font-display text-3xl text-gold-400"><%= chf(@booking.total_price) %></p>
+        <p class="ka-label mt-1 normal-case tracking-normal">
+          bezahlt mit <%= @booking.payment_method_label %>
+        </p>
       </div>
     </div>
   </div>

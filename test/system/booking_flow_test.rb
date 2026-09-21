@@ -17,7 +17,15 @@ class BookingFlowTest < ApplicationSystemTestCase
     check "seat_#{seats(:b2).id}"
     click_button "submit-booking"
 
-    assert_text "Buchung erfolgreich"
+    # FA-Opt-2: Bestaetigung und Zahlungsauswahl
+    assert_text "Buchung bestätigen"
+    assert_text "2 Tickets"
+    assert_text "Zahlungsmethode"
+
+    choose "TWINT"
+    click_button "mit Apple Pay bezahlen"
+
+    assert_text "Zahlung erfolgreich"
     assert_text "3 Buchungen"
   end
 

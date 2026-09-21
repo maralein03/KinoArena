@@ -33,9 +33,10 @@ class BookingsController < ApplicationController
 
     SeatBroadcast.seats_changed(@showtime, seats)
     log_activity("booking_created", target: @showtime,
-                 description: "#{bookings.size} Ticket(s) gebucht: #{seats.map(&:label).join(', ')}")
+                 description: "#{bookings.size} Ticket(s) via #{bookings.first.payment_method_label} gebucht: " \
+                              "#{seats.map(&:label).join(', ')}")
 
-    redirect_to bookings_path, notice: "Buchung erfolgreich. Deine Tickets sind bereit."
+    redirect_to bookings_path, notice: "Zahlung erfolgreich. Deine Tickets sind bereit."
   rescue ActiveRecord::RecordNotUnique
     # NFA-1: Unique-Index auf [showtime_id, seat_id] hat eine Doppelbuchung verhindert
     log_activity("booking_conflict", target: @showtime, description: "Doppelbuchung verhindert (DB-Constraint)")
@@ -82,6 +83,12 @@ class BookingsController < ApplicationController
       }
     end
 
-    seats.map { |seat| current_user.bookings.build(showtime: showtime, seat: seat) }
+    seats.map do |seat|
+      current_user.bookings.build(showtime: showtime, seat: seat, payment_method: payment_method)
+    end
+  end
+
+  def payment_method
+    Booking::PAYMENT_METHODS.key?(params[:payment_method]) ? params[:payment_method] : nil
   end
 end

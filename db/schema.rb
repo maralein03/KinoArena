@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_21_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_21_100000) do
   create_table "activity_logs", force: :cascade do |t|
     t.string "action", null: false
     t.datetime "created_at", null: false
@@ -34,6 +34,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_090000) do
 
   create_table "bookings", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "payment_method"
     t.string "qr_code_token"
     t.integer "seat_id", null: false
     t.integer "showtime_id", null: false

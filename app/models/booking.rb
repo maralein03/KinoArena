@@ -1,4 +1,10 @@
 class Booking < ApplicationRecord
+  PAYMENT_METHODS = {
+    "apple_pay" => "Apple Pay",
+    "credit_card" => "Kreditkarte",
+    "twint" => "TWINT"
+  }.freeze
+
   belongs_to :user
   belongs_to :showtime
   belongs_to :seat
@@ -9,10 +15,16 @@ class Booking < ApplicationRecord
   validates :qr_code_token, presence: true, uniqueness: true
   validates :total_price, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :seat_id, uniqueness: { scope: :showtime_id, message: "ist für diese Vorstellung bereits gebucht" }
+  validates :payment_method, inclusion: { in: PAYMENT_METHODS.keys, message: "ist keine gültige Zahlungsmethode" },
+                             allow_nil: true
 
   validate :seat_belongs_to_showtime_auditorium
 
   scope :recent_first, -> { order(created_at: :desc) }
+
+  def payment_method_label
+    PAYMENT_METHODS[payment_method] || "Vor Ort"
+  end
 
   def to_s
     "#{showtime.label} – Platz #{seat.label}"
