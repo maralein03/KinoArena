@@ -17,6 +17,12 @@ admin.save!
   customer.save!
 end
 
+# Sammelkonto fuer die vorbelegten Plaetze, damit die Demo-Kunden leere Ticketlisten haben.
+box_office = User.find_or_initialize_by(email_address: "abendkasse@kinoarena.ch")
+box_office.assign_attributes(name: "Abendkasse", admin: false)
+box_office.password = SecureRandom.hex(16) if box_office.new_record?
+box_office.save!
+
 movies = [
   {
     title: "Blade Runner 2099",
@@ -95,7 +101,6 @@ end
 
 # Vorbelegte Plaetze, damit der Saalplan belegte Sitze zeigt.
 # Feste Zufallssaat => bei jedem Seed dasselbe Muster.
-customers = User.where(admin: false).order(:id).to_a
 occupancy_rates = [ 0.45, 0.20, 0.60, 0.15, 0.35, 0.05 ]
 
 showtimes.each_with_index do |showtime, index|
@@ -103,9 +108,9 @@ showtimes.each_with_index do |showtime, index|
   taken = seats.sample((seats.size * occupancy_rates[index % occupancy_rates.size]).round,
                        random: Random.new(1000 + index))
 
-  taken.each_with_index do |seat, position|
+  taken.each do |seat|
     Booking.find_or_create_by!(showtime: showtime, seat: seat) do |booking|
-      booking.user = customers[position % customers.size]
+      booking.user = box_office
     end
   end
 end
