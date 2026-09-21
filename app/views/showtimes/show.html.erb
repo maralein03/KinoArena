@@ -41,6 +41,7 @@
                                 has-[:checked]:bg-brand-500 has-[:checked]:ring-brand-500"
                          title="Platz <%= seat.label %>">
                     <%= check_box_tag "seat_ids[]", seat.id, false,
+                          id: "seat_#{seat.id}",
                           disabled: !logged_in?,
                           class: "sr-only",
                           data: { seat_map_target: "seat", label: seat.label, action: "change->seat-map#update" } %>
@@ -84,6 +85,7 @@
       </div>
 
       <button type="submit"
+              id="submit-booking"
               <%= "disabled" unless logged_in? %>
               data-seat-map-target="submit"
               class="ka-btn-primary mt-5 w-full py-3.5 text-base">

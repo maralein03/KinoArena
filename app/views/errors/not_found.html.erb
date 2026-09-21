@@ -1,0 +1,17 @@
+<div class="mx-auto max-w-lg py-16 text-center">
+  <p class="font-display text-7xl text-brand-500">404</p>
+
+  <h1 class="mt-4 text-3xl">Diese Seite gibt es nicht</h1>
+
+  <p class="mt-4 text-slate-400">
+    Der gesuchte Film, die Vorstellung oder das Ticket wurde nicht gefunden.
+    Möglicherweise wurde der Eintrag zwischenzeitlich entfernt.
+  </p>
+
+  <div class="mt-8 flex justify-center gap-3">
+    <%= link_to "Zum Programm", root_path, class: "ka-btn-primary" %>
+    <% if logged_in? %>
+      <%= link_to "Meine Tickets", bookings_path, class: "ka-btn-ghost" %>
+    <% end %>
+  </div>
+</div>

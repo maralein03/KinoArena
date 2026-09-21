@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   include Pundit::Authorization
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
 
   helper_method :current_user, :logged_in?, :admin?
 
@@ -49,7 +50,12 @@ class ApplicationController < ActionController::Base
   end
 
   def user_not_authorized
-    flash[:alert] = "Zugriff verweigert. Du hast keine Berechtigung fuer diese Seite."
+    flash[:alert] = "Zugriff verweigert. Du hast keine Berechtigung für diese Seite."
     redirect_to(request.referer.presence || root_path)
+  end
+
+  def record_not_found
+    log_activity("record_not_found", description: "Aufruf einer nicht existierenden Ressource: #{request.path}")
+    render "errors/not_found", status: :not_found
   end
 end
