@@ -1,11 +1,13 @@
-# KinoArena – Smart Cinema Booking & Management System
+# KinoArena – Smart Cinema Booking & Management System 🎬🎟️
 
-Modul 223 (Multiuser-Applikationen objektorientiert realisieren)
-Autorin: Mara Spichiger · Klasse 24-223-E
+**Modul 223:** Multiuser-Applikationen objektorientiert realisieren
+**Autorin:** Mara Spichiger
+**Schulklasse:** 24-223-E
+**Datum:** 18.09.2026 (überarbeitet am 21.09.2026)
 
 ---
 
-## 1. Problemstellung
+## 📌 1. Über das Projekt
 
 In kleineren und unabhängigen Kinos laufen Spielplanverwaltung und Sitzplatzreservierung
 oft über starre Altsysteme oder manuelle Prozesse. Für Besucherinnen und Besucher ist
@@ -13,10 +15,12 @@ dadurch unklar, welche Plätze tatsächlich noch frei sind. Bei beliebten Vorste
 führen gleichzeitige Zugriffe zweier Kunden auf denselben Platz ohne saubere
 Systemunterstützung zu Doppelbuchungen.
 
-KinoArena automatisiert den Buchungsprozess vollständig und stellt sicher, dass
-Parallelzugriffe fachlich korrekt und ohne Dateninkonsistenzen abgewickelt werden.
+**KinoArena** ist eine objektorientierte Multiuser-Webapplikation auf Basis von
+**Ruby on Rails 8**. Sie automatisiert den Buchungs- und Reservierungsprozess
+vollständig: Kunden sehen den Saalplan in Echtzeit und buchen Sitzplätze, während
+strikte Concurrency-Mechanismen sicherstellen, dass kein Platz doppelt vergeben wird.
 
-## 2. Funktionsumfang
+## 🎯 2. Funktionsumfang
 
 ### Kunde
 - Konto erstellen, anmelden, abmelden
@@ -35,7 +39,7 @@ Parallelzugriffe fachlich korrekt und ohne Dateninkonsistenzen abgewickelt werde
 
 ---
 
-## 3. Datenmodell
+## 🗄️ 3. Datenmodell
 
 ```mermaid
 erDiagram
@@ -115,7 +119,7 @@ Zentrale Regel: **`bookings` besitzt einen zusammengesetzten Unique-Index auf
 
 ---
 
-## 4. Concurrency und Datenintegrität
+## 🔒 4. Concurrency und Datenintegrität
 
 ### Stufe 1 – Unique-Index gegen Doppelbuchungen
 
@@ -182,7 +186,7 @@ reserved_by_others = showtime.seat_holds.active
 
 ---
 
-## 5. Architektur
+## 🏗️ 5. Architektur
 
 | Schicht | Ort | Aufgabe |
 |---|---|---|
@@ -213,18 +217,25 @@ end
 
 ---
 
-## 6. Technologiestack
+## 🛠️ 6. Technologiestack & Systemumgebung
 
 | Bereich | Technologie |
 |---|---|
-| Framework | Ruby on Rails 8.1 |
-| Sprache | Ruby 4.0 |
+| Framework | Ruby on Rails 8.1+ |
+| Sprache | Ruby 4.0+ |
 | Datenbank | SQLite3 |
+| Frontend | Tailwind CSS 4, ERB, Hotwire (Turbo + Stimulus) |
 | Autorisierung | Pundit |
 | Passwörter | bcrypt (`has_secure_password`) |
-| Frontend | Tailwind CSS 4, Hotwire (Turbo + Stimulus) |
 | QR-Codes | rqrcode |
 | Tests | Minitest, Capybara |
+| Entwicklungsumgebung | Windows 11 / WSL2 (Ubuntu) / VS Code |
+
+**Concurrency Protection**
+
+* Unique Database Index auf `[showtime_id, seat_id]` gegen Doppelbuchungen
+* Active Record Optimistic Locking (`lock_version`) für Admin-CRUD
+* Temporäre Sitzplatzreservierung mit Echtzeit-Anzeige über Turbo Streams
 
 > **Hinweis zum `json`-Gem:** Im Gemfile ist `json` auf `~> 2.21` festgenagelt.
 > Version 3.x ist mit ActiveSupport 8.1 inkompatibel (`JSON.parse` akzeptiert keine
@@ -233,26 +244,48 @@ end
 
 ---
 
-## 7. Setup
+## 🚀 7. Installation & lokaler Start
 
-Voraussetzungen: Ruby 4.0, Bundler, SQLite3
+**Voraussetzungen:** Ruby 4.0+, Rails 8.1+, Bundler und SQLite3 in der WSL2-Umgebung.
+
+**1. Repository klonen und Projektordner öffnen**
 
 ```bash
 git clone git@github.com:maralein03/KinoArena.git
 cd KinoArena
-
-bin/setup                 # Abhängigkeiten, Datenbank, Seeds
-bin/dev                   # Server auf http://localhost:3000
 ```
 
-Datenbank einzeln aufsetzen:
+**2. Gems installieren**
+
+```bash
+bundle install
+```
+
+**3. Datenbank vorbereiten und Migrationen ausführen**
 
 ```bash
 bin/rails db:prepare
+```
+
+**4. Testdaten laden**
+
+```bash
 bin/rails db:seed
 ```
 
-### Demo-Zugänge
+**5. Entwicklungsserver starten**
+
+```bash
+bin/dev
+```
+
+**6. Applikation öffnen:** <http://localhost:3000>
+
+> Die Schritte 2 bis 4 erledigt `bin/setup` auch in einem Durchgang.
+
+---
+
+## 🔑 8. Demo-Zugangsdaten (nach `db:seed`)
 
 | Rolle | E-Mail | Passwort |
 |---|---|---|
@@ -261,11 +294,17 @@ bin/rails db:seed
 | Kunde B | `ben@example.com` | `benbenben` |
 
 Die beiden Kundenkonten dienen dazu, die Doppelbuchungssperre (NFA-1) in zwei
-getrennten Browser-Sitzungen vorzuführen.
+getrennten Browser-Sitzungen vorzuführen – zum Beispiel in einem normalen und
+einem privaten Fenster, damit sich die Sitzungen nicht das Cookie teilen.
+
+Zusätzlich legt `db:seed` ein Sammelkonto **Abendkasse**
+(`abendkasse@kinoarena.test`) an. Ihm gehören die vorbelegten Sitzplätze, damit der
+Saalplan realistisch gefüllt ist, die Ticketlisten der Demo-Kunden aber leer bleiben.
+Das Konto hat ein zufälliges Passwort und ist für die Anmeldung nicht vorgesehen.
 
 ---
 
-## 8. Tests
+## 🧪 9. Tests
 
 ```bash
 bin/rails test              # Modell-, Controller- und Integrationstests
@@ -337,7 +376,7 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 
 ---
 
-## 9. Abdeckung der Anforderungen
+## ✅ 10. Abdeckung der Anforderungen
 
 | Anforderung | Umsetzung |
 |---|---|
@@ -365,12 +404,42 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 
 ---
 
-## 10. Aktivitätsprotokoll
+## 📋 11. Aktivitätsprotokoll
 
 Jede sicherheits- und fachrelevante Aktion wird in `activity_logs` festgehalten:
 Anmeldung, fehlgeschlagener Anmeldeversuch, Abmeldung, Registrierung,
 Profiländerung, Kontolöschung, Buchung, Buchungskonflikt, Stornierung,
-CRUD-Operationen auf Filme und Vorstellungen sowie Locking-Konflikte.
+CRUD-Operationen auf Filme, Säle und Vorstellungen sowie Locking-Konflikte.
 
 Das Protokoll ist unter `/admin/activity_logs` nach Aktion und Benutzer filterbar.
 Fehler beim Schreiben eines Eintrags brechen den Fachablauf bewusst nicht ab.
+
+---
+
+## 🌿 12. Git-Branch-Strategie
+
+Die Entwicklung erfolgt über Feature-Branches, damit jeder Arbeitsschritt
+nachvollziehbar bleibt. Zusammengeführt wird über Pull Requests auf `main`.
+
+| Branch | Inhalt |
+|---|---|
+| `main` | Stabiler Hauptzweig, enthält nur geprüfte Stände |
+| `feat-Datenbank-und-Modelle-erstellen` | Datenmodell, Migrationen, Validierungen |
+| `feat-Benutzerauthentifizierung-implementieren` | Registrierung, An- und Abmeldung |
+| `feat-Benutzerprofil-implementieren` | Profilansicht und -bearbeitung |
+| `feat-Benutzerverwaltung-implementieren` | Benutzerübersicht für Administratoren |
+| `feat-Benutzerrollen-und-Berechtigungen-implementieren` | Rollenkonzept und Pundit-Policies |
+| `feat-Kernfunktion-implementieren` | Saalplan, Buchung, Checkout, Reservierung |
+| `feat-Aktivitätsprotokoll-implementieren` | Protokollierung aller relevanten Aktionen |
+
+Typischer Ablauf:
+
+```bash
+git checkout main
+git pull
+git checkout -b feat-neues-thema
+
+# arbeiten, committen
+git push -u origin feat-neues-thema
+# Pull Request auf GitHub eröffnen und nach main mergen
+```

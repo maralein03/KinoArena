@@ -18,7 +18,7 @@ admin.save!
 end
 
 # Sammelkonto fuer die vorbelegten Plaetze, damit die Demo-Kunden leere Ticketlisten haben.
-box_office = User.find_or_initialize_by(email_address: "abendkasse@kinoarena.ch")
+box_office = User.find_or_initialize_by(email_address: "abendkasse@kinoarena.test")
 box_office.assign_attributes(name: "Abendkasse", admin: false)
 box_office.password = SecureRandom.hex(16) if box_office.new_record?
 box_office.save!
