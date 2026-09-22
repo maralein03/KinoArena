@@ -349,26 +349,46 @@ sondern gemessen. Bei laufendem Server:
 bin/rails benchmark:showtimes
 ```
 
-Der Task feuert 50 echte HTTP-Anfragen parallel ab und bricht mit Fehlercode ab,
-wenn eine davon den Grenzwert reisst. Parameter lassen sich überschreiben:
+Der Task wärmt den Server auf, feuert dann 50 echte HTTP-Anfragen parallel ab und
+bricht mit Fehlercode ab, wenn eine davon den Grenzwert reisst. Parameter lassen
+sich überschreiben:
 
 ```bash
 REQUESTS=100 CONCURRENCY=50 LIMIT=1.5 URL=http://localhost:3000/ bin/rails benchmark:showtimes
 ```
 
-Messung auf dem Entwicklungsrechner (WSL2, Puma mit 3 Threads, **Development-Modus**):
+**Messumgebung:** WSL2 (Ubuntu) auf Windows 11, Puma mit 3 Threads, SQLite3,
+50 gleichzeitige Anfragen auf `/`.
 
-| Kennzahl | Wert |
-|---|---|
-| Gesamtdauer für 50 parallele Anfragen | 1,09 – 1,26 s |
-| Median (p50) | 0,53 – 0,58 s |
-| p95 | 0,98 – 1,14 s |
-| Langsamste Anfrage | 1,01 – 1,18 s |
-| Fehlerhafte Antworten | keine (50 × HTTP 200) |
+| Kennzahl | Produktionsmodus | Development-Modus |
+|---|---|---|
+| Durchsatz | 137 – 293 Anfragen/s | 21 – 33 Anfragen/s |
+| Median (p50) | 0,07 – 0,15 s | 0,69 – 1,25 s |
+| p95 | 0,13 – 0,28 s | 1,42 – 2,30 s |
+| Langsamste Anfrage | **0,13 – 0,29 s** | 1,49 – 2,32 s |
+| Fehlerhafte Antworten | keine (50 × HTTP 200) | keine (50 × HTTP 200) |
+| NFA-3 erfüllt | **ja**, Faktor 5 – 10 Reserve | nicht zuverlässig |
 
-Die Anforderung ist damit erfüllt. Der Wert ist konservativ, weil im
-Development-Modus bei jeder Anfrage Code neu geladen wird – in Produktion
-entfällt dieser Aufwand.
+**Bewertung:** Im Produktionsmodus ist die Anforderung deutlich erfüllt. Im
+Development-Modus wird der Grenzwert gerissen, weil Rails dort bei jeder Anfrage
+den Anwendungscode auf Änderungen prüft und neu lädt. Da NFA-3 das ausgelieferte
+System beschreibt, ist der Produktionswert massgeblich – der Development-Wert ist
+hier nur zur Einordnung angegeben.
+
+So lässt sich die Messung im Produktionsmodus nachvollziehen:
+
+```bash
+SECRET_KEY_BASE_DUMMY=1 bin/rails assets:precompile
+export SECRET_KEY_BASE=$(bin/rails secret)
+RAILS_ENV=production bin/rails db:prepare db:seed
+RAILS_ENV=production bin/rails server -p 3001
+
+# in einem zweiten Terminal
+URL=http://localhost:3001/ bin/rails benchmark:showtimes
+```
+
+> Nach der Messung `rm -rf public/assets` ausführen, sonst liefert der
+> Entwicklungsserver weiterhin die vorkompilierten statt der aktuellen Assets.
 
 Damit die Ladezeit stabil bleibt, hält
 `test/integration/spielplan_performance_test.rb` fest, dass die Anzahl der

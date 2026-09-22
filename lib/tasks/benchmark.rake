@@ -21,6 +21,9 @@ namespace :benchmark do
       abort "  Server nicht erreichbar (#{e.message}). Starte ihn mit: bin/dev"
     end
 
+    # Aufwaermen: der erste Zugriff pro Thread laedt Code und fuellt Caches.
+    Array.new(concurrency) { Thread.new { Net::HTTP.get_response(url) } }.each(&:join)
+
     durations = []
     statuses = []
     mutex = Mutex.new
