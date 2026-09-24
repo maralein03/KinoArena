@@ -513,7 +513,7 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 | NFA-3 Performance | Lasttest `bin/rails benchmark:showtimes`, N+1-Schutz im Testfall |
 | NFA-4 Access Control | Pundit-Policies, `require_admin` |
 | NFA-5 Fehlerbehandlung | Formulare mit erhaltenen Eingaben, 404-Seite, Flash-Meldungen |
-| NFA-6 Automatisierte Tests | 27 Testdateien, 128 Testfälle (Model, Controller, Integration, System) |
+| NFA-6 Automatisierte Tests | 27 Testdateien, 130 Testfälle (Model, Controller, Integration, System) |
 | NFA-7 Kontosicherheit | bcrypt, Login-Drosselung, signierte Reset-Token, Schutz des letzten Admins |
 
 ### Nicht umgesetzt
@@ -529,9 +529,9 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 Jede sicherheits- und fachrelevante Aktion wird in `activity_logs` festgehalten:
 Anmeldung, fehlgeschlagener Anmeldeversuch, gesperrte Anmeldung nach zu vielen
 Fehlversuchen, Abmeldung, Registrierung, angeforderter und abgeschlossener
-Passwort-Reset, Aufruf eines ungültigen Reset-Links, Profiländerung, Kontolöschung,
-Buchung, Buchungskonflikt, Stornierung, CRUD-Operationen auf Filme, Säle und
-Vorstellungen sowie Locking-Konflikte.
+Passwort-Reset, Aufruf eines ungültigen Reset-Links, Profiländerung,
+**Rollenänderung**, Kontolöschung, Buchung, Buchungskonflikt, Stornierung,
+CRUD-Operationen auf Filme, Säle und Vorstellungen sowie Locking-Konflikte.
 
 Das Protokoll ist unter `/admin/activity_logs` nach Aktion und Benutzer filterbar.
 Fehler beim Schreiben eines Eintrags brechen den Fachablauf bewusst nicht ab.

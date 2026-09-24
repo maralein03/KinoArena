@@ -55,4 +55,22 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to users_path
   end
+
+  test "FA-9 Rollenaenderung wird eigens protokolliert" do
+    sign_in_as users(:admin)
+
+    assert_difference("ActivityLog.where(action: 'user_role_changed').count", 1) do
+      patch user_url(users(:customer)), params: { user: { admin: true } }
+    end
+
+    assert users(:customer).reload.admin?
+  end
+
+  test "Aenderung ohne Rollenwechsel bleibt ein normaler Profileintrag" do
+    sign_in_as users(:admin)
+
+    assert_no_difference("ActivityLog.where(action: 'user_role_changed').count") do
+      patch user_url(users(:customer)), params: { user: { name: "Anderer Name" } }
+    end
+  end
 end

@@ -18,9 +18,10 @@ class UsersController < ApplicationController
 
   def update
     authorize @user
+    was_admin = @user.admin?
 
     if @user.update(user_params)
-      log_activity("user_updated", target: @user, description: "Profil aktualisiert")
+      log_profile_change(was_admin)
       redirect_to user_path(@user), notice: "Profil wurde aktualisiert."
     else
       # NFA-5: Formular wird mit den eingegebenen Werten erneut angezeigt
@@ -45,6 +46,17 @@ class UsersController < ApplicationController
   end
 
   private
+
+  # Eine Rollenaenderung ist die sicherheitsrelevanteste Aenderung am Konto und
+  # bekommt deshalb einen eigenen Protokolleintrag.
+  def log_profile_change(was_admin)
+    if was_admin == @user.admin?
+      log_activity("user_updated", target: @user, description: "Profil aktualisiert")
+    else
+      log_activity("user_role_changed", target: @user,
+                   description: "#{@user.email_address}: #{was_admin ? 'Administrator' : 'Kunde'} → #{@user.role_name}")
+    end
+  end
 
   def set_user
     @user = User.find(params[:id])
