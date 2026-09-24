@@ -10,7 +10,7 @@
 
   <div class="mt-8 flex justify-center gap-3">
     <%= link_to "Zum Programm", root_path, class: "ka-btn-primary" %>
-    <% if logged_in? %>
+    <% if logged_in? && !admin? %>
       <%= link_to "Meine Tickets", bookings_path, class: "ka-btn-ghost" %>
     <% end %>
   </div>

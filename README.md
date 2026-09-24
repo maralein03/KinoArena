@@ -24,6 +24,7 @@ strikte Concurrency-Mechanismen sicherstellen, dass kein Platz doppelt vergeben 
 
 ### Kunde
 - Konto erstellen, anmelden, abmelden
+- Vergessenes Passwort über einen zeitlich begrenzten Link zurücksetzen
 - Filmprogramm und Spielzeiten einsehen
 - Freie Sitzplätze im virtuellen Saalplan auswählen und verbindlich buchen
 - Buchung bestätigen, Zahlungsmethode wählen und bezahlen (simuliert)
@@ -60,6 +61,7 @@ erDiagram
         string password_digest
         string name
         boolean admin
+        datetime password_reset_sent_at "Sperrfrist für Reset-Anfragen"
     }
     MOVIE {
         int id PK
@@ -130,7 +132,7 @@ Die Datenbank lässt nur eine der beiden Transaktionen durch. Die zweite scheite
 
 ```ruby
 # app/controllers/bookings_controller.rb
-Booking.transaction { bookings.each(&:save!) }
+@showtime.with_lock { bookings.each(&:save!) }
 rescue ActiveRecord::RecordNotUnique
   redirect_to showtime_path(@showtime),
               alert: "Dieser Sitzplatz wurde gerade von jemand anderem gebucht. …"
@@ -138,6 +140,9 @@ rescue ActiveRecord::RecordNotUnique
 
 Die Validierung im Modell fängt den Normalfall ab, der Datenbank-Index den echten
 Wettlauf – eine Validierung allein genügt bei parallelen Prozessen nicht.
+`test/integration/concurrent_booking_test.rb` weist das nach: fünf echte Threads mit
+eigenen Datenbankverbindungen greifen gleichzeitig auf denselben Platz zu, genau
+einer bekommt ihn.
 
 ### Stufe 2 – Optimistic Locking im Admin-Bereich
 
@@ -184,6 +189,40 @@ reserved_by_others = showtime.seat_holds.active
 | Fremde Reservierung | Goldgelb mit Schloss, deaktiviert |
 | Gebucht | Dunkel mit × |
 
+### Stufe 4 – Pessimistic Locking beim Buchen
+
+Zwischen der Prüfung „ist dieser Platz noch frei?“ und dem eigentlichen `INSERT`
+liegt ein Zeitfenster. Damit dort keine fremde Buchung dazwischenrät, wird die
+Vorstellung für die Dauer des Vorgangs gesperrt:
+
+```ruby
+# app/controllers/bookings_controller.rb
+@showtime.with_lock do
+  bookings = build_bookings(@showtime, seat_ids)   # Prüfung der Sitzplätze
+  bookings.each(&:save!)                           # Schreiben
+  @showtime.seat_holds.where(seat_id: …).delete_all
+end
+```
+
+`with_lock` öffnet eine Transaktion und lädt die Vorstellung mit `SELECT … FOR UPDATE`
+neu. Prüfung und Schreiben bilden dadurch eine ununterbrechbare Einheit: ein zweiter
+Prozess wartet, statt auf veralteten Daten zu entscheiden.
+
+> **Einordnung:** SQLite kennt kein `FOR UPDATE` und serialisiert Schreibzugriffe
+> ohnehin auf Datenbankebene; die Lock-Klausel wird dort verworfen. Der Schutz ist
+> deshalb in dieser Umgebung nicht messbar, der Code bleibt aber portabel – auf
+> PostgreSQL oder MySQL greift die Sperre unverändert. Die tatsächliche Garantie
+> gegen Doppelbuchungen liefert in jedem Fall der Unique-Index aus Stufe 1.
+
+### Zusammenspiel der vier Stufen
+
+| Stufe | Mechanismus | Greift bei |
+|---|---|---|
+| 1 | Unique-Index + `rescue RecordNotUnique` | Echter Wettlauf um denselben Platz |
+| 2 | Optimistic Locking (`lock_version`) | Zwei Admins bearbeiten denselben Datensatz |
+| 3 | Temporäre Reservierung + Turbo Stream | Konflikt entsteht gar nicht erst |
+| 4 | Pessimistic Locking (`with_lock`) | Prüfen und Schreiben bleiben atomar |
+
 ---
 
 ## 🏗️ 5. Architektur
@@ -215,6 +254,39 @@ def permitted_attributes
 end
 ```
 
+Zusätzlich verhindert eine Validierung im Modell, dass sich der **letzte**
+Administrator selbst zum Kunden herabstuft – sonst wäre der Admin-Bereich für
+niemanden mehr erreichbar.
+
+### Kontosicherheit
+
+**Passwort vergessen.** Über `/password_resets/new` fordert eine Kundin einen Link an.
+Der Token wird mit `generates_token_for` aus dem Passwort-Hash abgeleitet:
+
+```ruby
+# app/models/user.rb
+generates_token_for :password_reset, expires_in: PASSWORD_RESET_VALIDITY do
+  password_salt&.last(10)
+end
+```
+
+Daraus folgen drei Eigenschaften, ohne dass dafür eine Tokentabelle nötig wäre:
+
+* Der Link verfällt nach 15 Minuten.
+* Er wird mit der Passwortänderung automatisch ungültig und ist damit einmalig.
+* Er lässt sich nicht fälschen, da er mit `secret_key_base` signiert ist.
+
+Die Antwort des Formulars lautet immer gleich – unabhängig davon, ob die Adresse
+existiert. Sonst liesse sich darüber herausfinden, wer registriert ist
+(User Enumeration). Eine Sperrfrist von 2 Minuten verhindert, dass jemand per
+Dauerfeuer Postfächer flutet.
+
+**Brute-Force-Schutz.** Nach fünf Fehlversuchen wird die Kombination aus IP-Adresse
+und E-Mail-Adresse für 15 Minuten gesperrt; die Anmeldung antwortet dann mit
+HTTP 429 und der Versuch landet im Aktivitätsprotokoll. Eine erfolgreiche Anmeldung
+setzt den Zähler zurück. Gezählt wird in einem prozesslokalen Cache, damit dafür
+keine Benutzerdaten geschrieben werden müssen.
+
 ---
 
 ## 🛠️ 6. Technologiestack & Systemumgebung
@@ -236,6 +308,13 @@ end
 * Unique Database Index auf `[showtime_id, seat_id]` gegen Doppelbuchungen
 * Active Record Optimistic Locking (`lock_version`) für Admin-CRUD
 * Temporäre Sitzplatzreservierung mit Echtzeit-Anzeige über Turbo Streams
+* Pessimistic Locking (`with_lock`) um Prüfung und Buchung herum
+
+**Kontosicherheit**
+
+* Passwort-Reset per signiertem Token (`generates_token_for`), 15 Minuten gültig
+* Drosselung der Anmeldung nach fünf Fehlversuchen
+* Schutz des letzten Administratorkontos vor Rollenentzug und Löschung
 
 > **Hinweis zum `json`-Gem:** Im Gemfile ist `json` auf `~> 2.21` festgenagelt.
 > Version 3.x ist mit ActiveSupport 8.1 inkompatibel (`JSON.parse` akzeptiert keine
@@ -283,6 +362,14 @@ bin/dev
 
 > Die Schritte 2 bis 4 erledigt `bin/setup` auch in einem Durchgang.
 
+> **E-Mails in der Entwicklung:** Es ist kein SMTP-Server konfiguriert. Mails werden
+> stattdessen als Datei unter `tmp/mails/` abgelegt. Den Link aus der
+> Passwort-Reset-Mail findest du dort im Klartext:
+>
+> ```bash
+> cat tmp/mails/*
+> ```
+
 ---
 
 ## 🔑 8. Demo-Zugangsdaten (nach `db:seed`)
@@ -324,11 +411,14 @@ SYSTEM_TEST_DRIVER=selenium bin/rails test:system
 | Bereich | Datei |
 |---|---|
 | Doppelbuchung (Unique-Index) | `test/models/booking_test.rb` |
+| Doppelbuchung unter echter Nebenläufigkeit | `test/integration/concurrent_booking_test.rb` |
 | Temporäre Reservierung | `test/models/seat_hold_test.rb`, `test/controllers/seat_holds_controller_test.rb` |
 | Optimistic Locking | `test/models/showtime_test.rb`, `test/controllers/admin/movies_controller_test.rb` |
 | Zugriffskontrolle | `test/controllers/users_controller_test.rb`, `test/system/admin_area_test.rb` |
 | Buchungsablauf End-to-End | `test/system/booking_flow_test.rb` |
 | Authentifizierung | `test/system/authentication_test.rb` |
+| Passwort-Reset | `test/controllers/password_resets_controller_test.rb`, `test/mailers/user_mailer_test.rb` |
+| Brute-Force-Drosselung | `test/controllers/sessions_controller_test.rb` |
 | Fehlerbehandlung (404) | `test/integration/error_handling_test.rb` |
 | Performance / N+1 (NFA-3) | `test/integration/spielplan_performance_test.rb` |
 
@@ -400,7 +490,7 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 
 | Anforderung | Umsetzung |
 |---|---|
-| FA-1 Authentifizierung | `SessionsController`, `RegistrationsController` |
+| FA-1 Authentifizierung | `SessionsController`, `RegistrationsController`, `PasswordResetsController` |
 | FA-2 Film- & Vorstellungsübersicht | `ShowtimesController#index`, `MoviesController#show` |
 | FA-3 Sitzplatzauswahl & Buchung | `ShowtimesController#show`, `BookingsController#create` |
 | FA-4 Meine Buchungen | `BookingsController#index` / `#show` |
@@ -410,7 +500,7 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 | FA-Opt-2 Zahlungs-Checkout | `CheckoutsController`, simulierte Zahlung mit Apple Pay / Kreditkarte / TWINT |
 | FA-Opt-3 Temporäre Reservierung | `SeatHold`, 5 Minuten, Echtzeit via Turbo Stream |
 | FA-Opt-3 Temporäre Reservierung | `SeatHold`, `SeatHoldsController`, Turbo Streams |
-| NFA-1 Keine Doppelbuchungen | Unique-Index `[showtime_id, seat_id]` |
+| NFA-1 Keine Doppelbuchungen | Unique-Index `[showtime_id, seat_id]`, `with_lock` beim Buchen |
 | NFA-2 Optimistic Locking | `lock_version` auf `movies` und `showtimes` |
 | NFA-3 Performance | Lasttest `bin/rails benchmark:showtimes`, N+1-Schutz im Testfall |
 | NFA-4 Access Control | Pundit-Policies, `require_admin` |
@@ -427,9 +517,11 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 ## 📋 11. Aktivitätsprotokoll
 
 Jede sicherheits- und fachrelevante Aktion wird in `activity_logs` festgehalten:
-Anmeldung, fehlgeschlagener Anmeldeversuch, Abmeldung, Registrierung,
-Profiländerung, Kontolöschung, Buchung, Buchungskonflikt, Stornierung,
-CRUD-Operationen auf Filme, Säle und Vorstellungen sowie Locking-Konflikte.
+Anmeldung, fehlgeschlagener Anmeldeversuch, gesperrte Anmeldung nach zu vielen
+Fehlversuchen, Abmeldung, Registrierung, angeforderter und abgeschlossener
+Passwort-Reset, Aufruf eines ungültigen Reset-Links, Profiländerung, Kontolöschung,
+Buchung, Buchungskonflikt, Stornierung, CRUD-Operationen auf Filme, Säle und
+Vorstellungen sowie Locking-Konflikte.
 
 Das Protokoll ist unter `/admin/activity_logs` nach Aktion und Benutzer filterbar.
 Fehler beim Schreiben eines Eintrags brechen den Fachablauf bewusst nicht ab.

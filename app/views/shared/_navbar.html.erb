@@ -12,7 +12,7 @@
 
       <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
         <%= link_to "Programm", showtimes_path, class: nav_link_class(showtimes_path) %>
-        <% if logged_in? %>
+        <% if logged_in? && !admin? %>
           <%= link_to "Meine Tickets", bookings_path, class: nav_link_class(bookings_path) %>
         <% end %>
         <% if admin? %>

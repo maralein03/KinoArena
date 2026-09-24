@@ -22,11 +22,17 @@ class BookingsController < ApplicationController
       return
     end
 
-    bookings = build_bookings(@showtime, seat_ids)
-    authorize bookings.first
+    bookings = nil
+    seats = nil
 
-    seats = bookings.map(&:seat)
-    Booking.transaction do
+    # NFA-1 Stufe 4: Pessimistic Lock auf der Vorstellung. Pruefung der
+    # Sitzplaetze und Insert laufen dadurch als eine ununterbrechbare Einheit;
+    # eine parallele Buchung wartet, statt auf veralteten Daten zu entscheiden.
+    @showtime.with_lock do
+      bookings = build_bookings(@showtime, seat_ids)
+      authorize bookings.first
+      seats = bookings.map(&:seat)
+
       bookings.each(&:save!)
       @showtime.seat_holds.where(seat_id: seats.map(&:id)).delete_all
     end

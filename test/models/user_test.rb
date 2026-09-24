@@ -25,4 +25,49 @@ class UserTest < ActiveSupport::TestCase
     assert_equal "Administrator", users(:admin).role_name
     assert_equal "Kunde", users(:customer).role_name
   end
+
+  test "NFA-4 dem letzten Administrator kann die Rolle nicht entzogen werden" do
+    admin = users(:admin)
+
+    assert_not admin.update(admin: false)
+    assert_includes admin.errors.attribute_names, :admin
+    assert admin.reload.admin?
+  end
+
+  test "Rollenentzug ist erlaubt, solange ein weiterer Administrator bleibt" do
+    users(:other_customer).update!(admin: true)
+
+    assert users(:admin).update(admin: false)
+  end
+
+  test "Reset-Token identifiziert den Benutzer und verfaellt nach Ablauf" do
+    user = users(:customer)
+    token = user.generate_token_for(:password_reset)
+
+    assert_equal user, User.find_by_token_for(:password_reset, token)
+
+    travel (User::PASSWORD_RESET_VALIDITY + 1.minute) do
+      assert_nil User.find_by_token_for(:password_reset, token)
+    end
+  end
+
+  test "Reset-Token wird durch eine Passwortaenderung entwertet" do
+    user = users(:customer)
+    token = user.generate_token_for(:password_reset)
+    user.update!(password: "ganzneuespasswort")
+
+    assert_nil User.find_by_token_for(:password_reset, token)
+  end
+
+  test "Reset-Anfragen sind kurzzeitig gesperrt" do
+    user = users(:customer)
+    assert_not user.password_reset_throttled?
+
+    user.start_password_reset!
+    assert user.password_reset_throttled?
+
+    travel (User::PASSWORD_RESET_COOLDOWN + 1.minute) do
+      assert_not user.password_reset_throttled?
+    end
+  end
 end

@@ -9,6 +9,9 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
+  # FA-1: Passwort vergessen
+  resources :password_resets, only: [ :new, :create, :edit, :update ], param: :token
+
   # FA-2/FA-3/FA-4: Kunde
   resources :users, only: [ :index, :show, :edit, :update, :destroy ]
   resources :movies, only: [ :show ]

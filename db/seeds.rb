@@ -77,14 +77,27 @@ auditoria = [
 end
 
 today = Time.zone.now.beginning_of_day
-showtimes = [
+planned_showtimes = [
   [ movies[0], auditoria[0], today + 18.hours,          14.50 ],
   [ movies[0], auditoria[0], today + 21.hours + 15.minutes, 14.50 ],
   [ movies[1], auditoria[1], today + 19.hours + 30.minutes, 16.00 ],
   [ movies[2], auditoria[1], today + 1.day + 20.hours, 16.50 ],
   [ movies[3], auditoria[0], today + 1.day + 15.hours, 12.00 ],
   [ movies[4], auditoria[0], today + 2.days + 19.hours, 18.00 ]
-].filter_map do |movie, auditorium, start_time, price|
+]
+
+# Termine aus frueheren Seed-Laeufen entfernen. Ohne das kollidiert der neue
+# Spielplan mit den alten Vorstellungen, sobald seit dem letzten Seed ein Tag
+# vergangen ist.
+Showtime.where(auditorium: auditoria, movie: movies)
+        .where.not(start_time: planned_showtimes.map { |_, _, start_time, _| start_time })
+        .each do |stale|
+  stale.bookings.delete_all
+  stale.seat_holds.delete_all
+  stale.destroy!
+end
+
+showtimes = planned_showtimes.filter_map do |movie, auditorium, start_time, price|
   next if start_time.past?
 
   showtime = Showtime.find_or_initialize_by(movie: movie, auditorium: auditorium, start_time: start_time)

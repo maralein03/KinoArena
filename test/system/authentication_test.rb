@@ -47,4 +47,31 @@ class AuthenticationTest < ApplicationSystemTestCase
     assert_text "Du wurdest abgemeldet"
     assert_link "Anmelden"
   end
+
+  test "FA-1 vergessenes Passwort kann ueber den Link neu gesetzt werden" do
+    user = users(:customer)
+    ActionMailer::Base.deliveries.clear
+
+    visit login_path
+    click_link "Passwort vergessen?"
+    fill_in "E-Mail", with: user.email_address
+    click_button "Link anfordern"
+
+    assert_text "Falls ein Konto zu dieser E-Mail-Adresse existiert"
+
+    link = ActionMailer::Base.deliveries.last.text_part.decoded[%r{https?://\S+/edit}]
+    visit URI.parse(link).request_uri
+
+    fill_in "Neues Passwort", with: "brandneues123"
+    fill_in "Passwort wiederholen", with: "brandneues123"
+    click_button "Passwort speichern"
+
+    assert_text "Passwort wurde geaendert"
+
+    fill_in "E-Mail", with: user.email_address
+    fill_in "Passwort", with: "brandneues123"
+    click_button "Anmelden"
+
+    assert_text user.name
+  end
 end

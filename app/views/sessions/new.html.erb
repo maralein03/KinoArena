@@ -31,6 +31,11 @@
       <%= f.submit "Anmelden", class: "ka-btn-primary w-full py-3" %>
     <% end %>
 
+    <p class="mt-4 text-center text-sm">
+      <%= link_to "Passwort vergessen?", new_password_reset_path,
+            class: "text-slate-400 transition hover:text-brand-500" %>
+    </p>
+
     <% if Rails.env.development? %>
       <p class="mt-5 text-center font-mono text-xs text-gold-400">
         Demo: admin@kinoarena.test / password123
