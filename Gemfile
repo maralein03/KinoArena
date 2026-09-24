@@ -67,4 +67,4 @@ gem "rqrcode", "~> 3.2"
 gem "pundit", "~> 2.5"
 
 # json 3.x ist mit ActiveSupport 8.1 inkompatibel (JSON.parse akzeptiert keine positionalen Optionen mehr)
-gem "json", "~> 2.21"
+gem "json", "~> 3.0"
