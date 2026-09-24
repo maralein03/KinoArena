@@ -30,4 +30,35 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get users_url
     assert_redirected_to login_path
   end
+
+  test "zu viele Fehlversuche sperren die Anmeldung voruebergehend" do
+    user = users(:other_customer)
+
+    SessionsController::MAX_FAILED_ATTEMPTS.times do
+      post login_path, params: { email_address: user.email_address, password: "falsch" }
+      assert_response :unprocessable_entity
+    end
+
+    assert_difference("ActivityLog.where(action: 'login_blocked').count", 1) do
+      post login_path, params: { email_address: user.email_address, password: "passwort123" }
+    end
+    assert_response :too_many_requests
+
+    travel (SessionsController::LOCKOUT_PERIOD + 1.minute) do
+      sign_in_as user
+      assert_redirected_to root_path
+    end
+  end
+
+  test "erfolgreiche Anmeldung setzt den Fehlerzaehler zurueck" do
+    user = users(:admin)
+
+    post login_path, params: { email_address: user.email_address, password: "falsch" }
+    sign_in_as user
+    assert_redirected_to root_path
+
+    delete logout_path
+    sign_in_as user
+    assert_redirected_to root_path
+  end
 end

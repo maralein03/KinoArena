@@ -1,6 +1,7 @@
 class Seat < ApplicationRecord
   belongs_to :auditorium
   has_many :bookings, dependent: :restrict_with_error
+  has_many :seat_holds, dependent: :destroy
 
   validates :row, presence: true
   validates :number, presence: true,

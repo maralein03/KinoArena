@@ -9,15 +9,25 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
-  # FA-3/FA-4: Kunde
+  # FA-1: Passwort vergessen
+  resources :password_resets, only: [ :new, :create, :edit, :update ], param: :token
+
+  # FA-2/FA-3/FA-4: Kunde
   resources :users, only: [ :index, :show, :edit, :update, :destroy ]
-  resources :showtimes, only: [ :index, :show ]
+  resources :movies, only: [ :show ]
+  resources :showtimes, only: [ :index, :show ] do
+    # FA-Opt-3: temporaere Sitzplatzreservierung
+    resources :seat_holds, only: [ :create, :destroy ]
+    # FA-Opt-2: Bestaetigung und simulierter Zahlungsvorgang
+    resource :checkout, only: [ :show ], controller: "checkouts"
+  end
   resources :bookings, only: [ :index, :show, :create, :destroy ]
 
   # FA-5/FA-6 + Aktivitaetsprotokoll: Admin
   namespace :admin do
     root "movies#index"
     resources :movies, except: [ :show ]
+    resources :auditoria, except: [ :show ], controller: "auditoria"
     resources :showtimes, except: [ :show ]
     resources :activity_logs, only: [ :index ]
   end

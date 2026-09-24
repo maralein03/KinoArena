@@ -1,0 +1,52 @@
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-4xl">Saalverwaltung</h1>
+    <div class="mt-3 h-0.5 w-12 bg-brand-500"></div>
+  </div>
+  <%= link_to "Neuer Saal", new_admin_auditorium_path, class: "ka-btn-primary text-sm" %>
+</div>
+
+<div class="ka-card mt-8 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="ka-table">
+      <thead>
+        <tr>
+          <th>Saal</th>
+          <th>Reihen</th>
+          <th>Sitzplätze</th>
+          <th>Vorstellungen</th>
+          <th>Gebuchte Plätze</th>
+          <th class="text-right">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @auditoria.empty? %>
+          <tr><td colspan="6" class="py-10 text-center text-slate-500">Noch keine Säle angelegt.</td></tr>
+        <% end %>
+
+        <% @auditoria.each do |auditorium| %>
+          <tr class="transition hover:bg-white/[0.02]">
+            <td class="text-white"><%= auditorium.name %></td>
+            <td class="font-mono text-xs text-slate-400"><%= auditorium.rows.join(", ") %></td>
+            <td class="text-slate-400"><%= auditorium.seats.count %></td>
+            <td class="text-slate-400"><%= auditorium.showtimes.count %></td>
+            <td class="text-slate-400"><%= auditorium.booked_seat_count %></td>
+            <td>
+              <div class="flex justify-end gap-3 text-xs">
+                <%= link_to "Umbenennen", edit_admin_auditorium_path(auditorium),
+                      class: "text-slate-400 underline transition hover:text-white" %>
+                <%= button_to "Löschen", admin_auditorium_path(auditorium), method: :delete,
+                      form: { data: { turbo_confirm: "Saal \"#{auditorium.name}\" wirklich löschen?" } },
+                      class: "text-brand-400 underline transition hover:text-brand-300" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="ka-label mt-4">
+  Säle mit geplanten Vorstellungen können nicht gelöscht werden.
+</p>

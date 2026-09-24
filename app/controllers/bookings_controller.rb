@@ -14,6 +14,7 @@ class BookingsController < ApplicationController
 
   def create
     @showtime = Showtime.find(params[:showtime_id])
+    SeatHold.release_expired!
     seat_ids = Array(params[:seat_ids]).reject(&:blank?)
 
     if seat_ids.empty?
@@ -21,15 +22,27 @@ class BookingsController < ApplicationController
       return
     end
 
-    bookings = build_bookings(@showtime, seat_ids)
-    authorize bookings.first
+    bookings = nil
+    seats = nil
 
-    Booking.transaction { bookings.each(&:save!) }
+    # NFA-1 Stufe 4: Pessimistic Lock auf der Vorstellung. Pruefung der
+    # Sitzplaetze und Insert laufen dadurch als eine ununterbrechbare Einheit;
+    # eine parallele Buchung wartet, statt auf veralteten Daten zu entscheiden.
+    @showtime.with_lock do
+      bookings = build_bookings(@showtime, seat_ids)
+      authorize bookings.first
+      seats = bookings.map(&:seat)
 
+      bookings.each(&:save!)
+      @showtime.seat_holds.where(seat_id: seats.map(&:id)).delete_all
+    end
+
+    SeatBroadcast.seats_changed(@showtime, seats)
     log_activity("booking_created", target: @showtime,
-                 description: "#{bookings.size} Ticket(s) gebucht: #{bookings.map { |b| b.seat.label }.join(', ')}")
+                 description: "#{bookings.size} Ticket(s) via #{bookings.first.payment_method_label} gebucht: " \
+                              "#{seats.map(&:label).join(', ')}")
 
-    redirect_to bookings_path, notice: "Buchung erfolgreich. Deine Tickets sind bereit."
+    redirect_to bookings_path, notice: "Zahlung erfolgreich. Deine Tickets sind bereit."
   rescue ActiveRecord::RecordNotUnique
     # NFA-1: Unique-Index auf [showtime_id, seat_id] hat eine Doppelbuchung verhindert
     log_activity("booking_conflict", target: @showtime, description: "Doppelbuchung verhindert (DB-Constraint)")
@@ -45,10 +58,11 @@ class BookingsController < ApplicationController
     @booking = Booking.find(params[:id])
     authorize @booking
     showtime = @booking.showtime
-    seat_label = @booking.seat.label
+    seat = @booking.seat
     @booking.destroy!
 
-    log_activity("booking_cancelled", target: showtime, description: "Ticket #{seat_label} storniert")
+    SeatBroadcast.seat_changed(showtime, seat)
+    log_activity("booking_cancelled", target: showtime, description: "Ticket #{seat.label} storniert")
     redirect_to bookings_path, notice: "Ticket wurde storniert."
   end
 
@@ -63,6 +77,24 @@ class BookingsController < ApplicationController
       }
     end
 
-    seats.map { |seat| current_user.bookings.build(showtime: showtime, seat: seat) }
+    reserved_by_others = showtime.seat_holds.active
+                                 .where(seat_id: seats.map(&:id))
+                                 .where.not(user_id: current_user.id)
+                                 .includes(:seat)
+
+    if reserved_by_others.any?
+      raise ActiveRecord::RecordInvalid, Booking.new.tap { |b|
+        b.errors.add(:seat, "#{reserved_by_others.map { |h| h.seat.label }.join(', ')} " \
+                            "wird gerade von einer anderen Person gebucht")
+      }
+    end
+
+    seats.map do |seat|
+      current_user.bookings.build(showtime: showtime, seat: seat, payment_method: payment_method)
+    end
+  end
+
+  def payment_method
+    Booking::PAYMENT_METHODS.key?(params[:payment_method]) ? params[:payment_method] : nil
   end
 end

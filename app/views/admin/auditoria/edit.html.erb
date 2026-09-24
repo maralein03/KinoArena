@@ -1,0 +1,39 @@
+<div class="mx-auto max-w-xl">
+  <div class="ka-card p-8">
+    <h1 class="text-2xl">Saal umbenennen</h1>
+    <div class="mt-2 mb-6 h-0.5 w-12 bg-brand-500"></div>
+
+    <%= render "shared/errors", record: @auditorium %>
+
+    <dl class="mb-6 grid grid-cols-3 gap-4 rounded-lg border border-white/10 bg-ink-700/50 p-4 text-sm">
+      <div>
+        <dt class="ka-label">Reihen</dt>
+        <dd class="mt-1 text-slate-200"><%= @auditorium.rows.size %></dd>
+      </div>
+      <div>
+        <dt class="ka-label">Sitzplätze</dt>
+        <dd class="mt-1 text-slate-200"><%= @auditorium.seats.count %></dd>
+      </div>
+      <div>
+        <dt class="ka-label">Gebucht</dt>
+        <dd class="mt-1 text-slate-200"><%= @auditorium.booked_seat_count %></dd>
+      </div>
+    </dl>
+
+    <%= form_with model: @auditorium, url: admin_auditorium_path(@auditorium), method: :patch, class: "space-y-4" do |f| %>
+      <div>
+        <%= f.label :name, "Bezeichnung", class: "ka-label normal-case tracking-normal" %>
+        <%= f.text_field :name, class: "ka-input" %>
+      </div>
+
+      <p class="text-xs text-slate-500">
+        Der Saalplan kann nicht nachträglich verändert werden, da sonst bestehende Buchungen ungültig würden.
+      </p>
+
+      <div class="flex gap-3 pt-2">
+        <%= f.submit "Speichern", class: "ka-btn-primary" %>
+        <%= link_to "Abbrechen", admin_auditoria_path, class: "ka-btn-ghost" %>
+      </div>
+    <% end %>
+  </div>
+</div>

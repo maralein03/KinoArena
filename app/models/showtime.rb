@@ -2,6 +2,7 @@ class Showtime < ApplicationRecord
   belongs_to :movie
   belongs_to :auditorium
   has_many :bookings, dependent: :destroy
+  has_many :seat_holds, dependent: :destroy
   has_many :booked_seats, through: :bookings, source: :seat
 
   validates :start_time, presence: true

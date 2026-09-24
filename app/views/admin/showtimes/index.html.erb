@@ -1,40 +1,51 @@
-<div class="max-w-5xl mx-auto">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Spielplanverwaltung</h1>
-    <%= link_to "Neue Vorstellung", new_admin_showtime_path,
-          class: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded" %>
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-4xl">Spielplanverwaltung</h1>
+    <div class="mt-3 h-0.5 w-12 bg-brand-500"></div>
   </div>
+  <%= link_to "Neue Vorstellung", new_admin_showtime_path, class: "ka-btn-primary text-sm" %>
+</div>
 
-  <div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+<div class="ka-card mt-8 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="ka-table">
+      <thead>
         <tr>
-          <th class="px-4 py-3 text-left">Film</th>
-          <th class="px-4 py-3 text-left">Saal</th>
-          <th class="px-4 py-3 text-left">Beginn</th>
-          <th class="px-4 py-3 text-left">Preis</th>
-          <th class="px-4 py-3 text-left">Gebucht</th>
-          <th class="px-4 py-3 text-left">Version</th>
-          <th class="px-4 py-3 text-right">Aktionen</th>
+          <th>Film</th>
+          <th>Saal</th>
+          <th>Beginn</th>
+          <th>Preis</th>
+          <th>Auslastung</th>
+          <th>Version</th>
+          <th class="text-right">Aktionen</th>
         </tr>
       </thead>
-      <tbody class="divide-y">
+      <tbody>
         <% @showtimes.each do |showtime| %>
-          <tr>
-            <td class="px-4 py-3 font-medium text-gray-800"><%= showtime.movie.title %></td>
-            <td class="px-4 py-3 text-gray-600"><%= showtime.auditorium.name %></td>
-            <td class="px-4 py-3 text-gray-600"><%= showtime.start_time.strftime("%d.%m.%Y %H:%M") %></td>
-            <td class="px-4 py-3 text-gray-600">CHF <%= sprintf("%.2f", showtime.price) %></td>
-            <td class="px-4 py-3 text-gray-600">
-              <%= showtime.bookings.count %> / <%= showtime.auditorium.seats.count %>
+          <% booked = showtime.bookings.count %>
+          <% total = showtime.auditorium.seats.count %>
+          <tr class="transition hover:bg-white/[0.02]">
+            <td class="text-white"><%= showtime.movie.title %></td>
+            <td class="text-slate-400"><%= showtime.auditorium.name %></td>
+            <td class="font-mono text-xs text-slate-400">
+              <%= showtime_date(showtime.start_time) %> · <%= showtime.start_time.strftime("%H:%M") %>
             </td>
-            <td class="px-4 py-3 text-gray-400">v<%= showtime.lock_version %></td>
-            <td class="px-4 py-3">
-              <div class="flex justify-end gap-3">
-                <%= link_to "Bearbeiten", edit_admin_showtime_path(showtime), class: "text-indigo-600 hover:underline" %>
-                <%= button_to "Loeschen", admin_showtime_path(showtime), method: :delete,
-                      form: { data: { turbo_confirm: "Vorstellung wirklich loeschen? Alle Buchungen werden entfernt." } },
-                      class: "text-red-600 hover:underline" %>
+            <td class="font-mono text-xs text-gold-400"><%= chf(showtime.price) %></td>
+            <td>
+              <div class="flex items-center gap-2">
+                <div class="h-1 w-16 overflow-hidden rounded-full bg-ink-600">
+                  <div class="h-full bg-brand-500" style="width: <%= total.zero? ? 0 : booked * 100 / total %>%"></div>
+                </div>
+                <span class="font-mono text-xs text-slate-500"><%= booked %>/<%= total %></span>
+              </div>
+            </td>
+            <td class="font-mono text-xs text-slate-600">v<%= showtime.lock_version %></td>
+            <td>
+              <div class="flex justify-end gap-3 text-xs">
+                <%= link_to "Bearbeiten", edit_admin_showtime_path(showtime), class: "text-slate-400 underline transition hover:text-white" %>
+                <%= button_to "Löschen", admin_showtime_path(showtime), method: :delete,
+                      form: { data: { turbo_confirm: "Vorstellung wirklich löschen? Alle Buchungen werden entfernt." } },
+                      class: "text-brand-400 underline transition hover:text-brand-300" %>
               </div>
             </td>
           </tr>

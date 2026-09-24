@@ -1,0 +1,111 @@
+<div class="mx-auto max-w-md"
+     data-controller="checkout"
+     data-checkout-expires-at-value="<%= @hold_expires_at&.iso8601 %>">
+
+  <%= form_with url: bookings_path, method: :post, data: { checkout_target: "form" } do |f| %>
+    <%= hidden_field_tag :showtime_id, @showtime.id %>
+    <% @seats.each do |seat| %>
+      <%= hidden_field_tag "seat_ids[]", seat.id, id: nil %>
+    <% end %>
+
+    <%# Schritt 1: Buchung bestätigen %>
+    <section data-checkout-target="step" data-step="confirm" class="ka-card p-6">
+      <div class="flex items-start justify-between">
+        <h1 class="text-2xl">Buchung bestätigen</h1>
+        <%= link_to showtime_path(@showtime), class: "text-slate-500 transition hover:text-white" do %>
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M4.3 4.3a1 1 0 011.4 0L10 8.6l4.3-4.3a1 1 0 111.4 1.4L11.4 10l4.3 4.3a1 1 0 01-1.4 1.4L10 11.4l-4.3 4.3a1 1 0 01-1.4-1.4L8.6 10 4.3 5.7a1 1 0 010-1.4z"/>
+          </svg>
+          <span class="sr-only">Abbrechen</span>
+        <% end %>
+      </div>
+
+      <div class="mt-5 flex gap-4 rounded-lg border border-white/10 bg-ink-700/50 p-4">
+        <% if @showtime.movie.poster_url.present? %>
+          <%= image_tag @showtime.movie.poster_url, alt: @showtime.movie.title,
+                class: "h-24 w-16 shrink-0 rounded object-cover" %>
+        <% end %>
+
+        <div>
+          <h2 class="text-lg"><%= @showtime.movie.title %></h2>
+          <p class="ka-label mt-1 normal-case tracking-normal">
+            <%= showtime_date(@showtime.start_time) %> &middot; <%= @showtime.start_time.strftime("%H:%M") %>
+          </p>
+          <p class="text-sm text-slate-400"><%= @showtime.auditorium.name %></p>
+          <div class="mt-2 flex flex-wrap gap-1.5">
+            <% @seats.each do |seat| %>
+              <span class="ka-chip"><%= seat.label %></span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <dl class="mt-5 divide-y divide-white/5 rounded-lg border border-white/10">
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <dt class="text-slate-400"><%= pluralize(@seats.size, "Ticket", plural: "Tickets") %></dt>
+          <dd class="font-mono text-slate-200"><%= chf(@showtime.price * @seats.size) %></dd>
+        </div>
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <dt class="text-slate-400">Buchungsgebühr</dt>
+          <dd class="font-mono text-slate-200"><%= chf(@booking_fee) %></dd>
+        </div>
+        <div class="flex items-baseline justify-between px-4 py-3">
+          <dt class="font-medium text-white">Total</dt>
+          <dd class="font-display text-2xl text-gold-400"><%= chf(@total) %></dd>
+        </div>
+      </dl>
+
+      <p data-checkout-target="timer" class="mt-4 hidden text-center font-mono text-xs text-gold-400"></p>
+
+      <div class="mt-6 flex gap-3">
+        <%= link_to "Abbrechen", showtime_path(@showtime), class: "ka-btn-ghost flex-1" %>
+        <button type="button" data-action="checkout#toPayment" class="ka-btn-primary flex-1">
+          Weiter zur Zahlung →
+        </button>
+      </div>
+    </section>
+
+    <%# Schritt 2: Zahlungsmethode %>
+    <section data-checkout-target="step" data-step="payment" class="ka-card mt-6 p-6">
+      <button type="button" data-action="checkout#toConfirm" class="ka-label transition hover:text-white">
+        ← Zurück
+      </button>
+
+      <h2 class="mt-4 text-2xl">Zahlungsmethode</h2>
+      <p class="mt-1 text-sm text-slate-400">
+        Wähle aus, wie du <%= chf(@total) %> bezahlen möchtest.
+      </p>
+
+      <div class="mt-5 space-y-3">
+        <% [
+             [ "apple_pay", "Apple Pay", "Touch ID oder Face ID" ],
+             [ "credit_card", "Kreditkarte", "Visa, Mastercard, Amex" ],
+             [ "twint", "TWINT", "Schweizer Mobile Payment" ]
+           ].each_with_index do |(value, title, subtitle), index| %>
+          <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-white/10 bg-ink-700/50 p-4
+                        transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10">
+            <%= radio_button_tag :payment_method, value, index.zero?,
+                  class: "h-4 w-4 border-white/20 bg-ink-700 text-brand-500 focus:ring-brand-500",
+                  data: { action: "checkout#selectMethod", checkout_target: "method", label: title } %>
+            <span>
+              <span class="block font-medium text-white"><%= title %></span>
+              <span class="block text-xs text-slate-400"><%= subtitle %></span>
+            </span>
+          </label>
+        <% end %>
+      </div>
+
+      <button type="submit" data-action="checkout#pay" data-checkout-target="payButton"
+              class="mt-6 w-full rounded-lg bg-white py-3.5 font-medium text-ink-950 transition hover:bg-slate-200">
+        mit Apple Pay bezahlen
+      </button>
+    </section>
+
+    <%# Schritt 3: Verarbeitung (nur mit JavaScript sichtbar) %>
+    <section data-checkout-target="processing" class="ka-card mt-6 hidden p-12 text-center">
+      <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-ink-600 border-t-brand-500 motion-safe:animate-spin"></span>
+      <h2 class="mt-6 text-2xl">Zahlung wird verarbeitet</h2>
+      <p class="mt-2 text-sm text-slate-400" data-checkout-target="processingHint">Bitte einen Moment Geduld</p>
+    </section>
+  <% end %>
+</div>
