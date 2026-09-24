@@ -3,7 +3,7 @@
 **Modul 223:** Multiuser-Applikationen objektorientiert realisieren
 **Autorin:** Mara Spichiger
 **Schulklasse:** 24-223-E
-**Datum:** 18.09.2026 (überarbeitet am 21.09.2026)
+**Datum:** 18.09.2026 (überarbeitet am 24.09.2026)
 
 ---
 
@@ -97,6 +97,7 @@ erDiagram
         int seat_id FK
         string qr_code_token UK
         decimal total_price
+        string payment_method "simulierte Zahlungsart"
     }
     SEAT_HOLD {
         int id PK
@@ -132,8 +133,9 @@ Die Datenbank lässt nur eine der beiden Transaktionen durch. Die zweite scheite
 
 ```ruby
 # app/controllers/bookings_controller.rb
-@showtime.with_lock { bookings.each(&:save!) }
 rescue ActiveRecord::RecordNotUnique
+  log_activity("booking_conflict", target: @showtime,
+               description: "Doppelbuchung verhindert (DB-Constraint)")
   redirect_to showtime_path(@showtime),
               alert: "Dieser Sitzplatz wurde gerade von jemand anderem gebucht. …"
 ```
@@ -360,7 +362,10 @@ bin/dev
 
 **6. Applikation öffnen:** <http://localhost:3000>
 
-> Die Schritte 2 bis 4 erledigt `bin/setup` auch in einem Durchgang.
+> Alternativ erledigt `bin/setup` die Schritte 2 bis 5 in einem Durchgang und startet
+> anschliessend den Entwicklungsserver. Mit `bin/setup --skip-server` bleibt der Server
+> aus. Testdaten werden dabei nur beim erstmaligen Anlegen der Datenbank geladen –
+> danach jederzeit manuell mit `bin/rails db:seed`.
 
 > **E-Mails in der Entwicklung:** Es ist kein SMTP-Server konfiguriert. Mails werden
 > stattdessen als Datei unter `tmp/mails/` abgelegt. Den Link aus der
@@ -490,21 +495,26 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 
 | Anforderung | Umsetzung |
 |---|---|
-| FA-1 Authentifizierung | `SessionsController`, `RegistrationsController`, `PasswordResetsController` |
+| FA-1 Authentifizierung | `SessionsController`, `RegistrationsController` |
+| FA-1b Passwort vergessen | `PasswordResetsController`, `UserMailer`, `generates_token_for` |
 | FA-2 Film- & Vorstellungsübersicht | `ShowtimesController#index`, `MoviesController#show` |
 | FA-3 Sitzplatzauswahl & Buchung | `ShowtimesController#show`, `BookingsController#create` |
-| FA-4 Meine Buchungen | `BookingsController#index` / `#show` |
+| FA-4 Meine Buchungen & QR-Code | `BookingsController#index` / `#show`, `BookingsHelper#qr_code_svg` |
 | FA-5 Filmverwaltung | `Admin::MoviesController` |
 | FA-6 Spielplanverwaltung | `Admin::ShowtimesController`, `Admin::AuditoriaController` |
-| FA-Opt-1 QR-Code | `BookingsHelper#qr_code_svg` |
-| FA-Opt-2 Zahlungs-Checkout | `CheckoutsController`, simulierte Zahlung mit Apple Pay / Kreditkarte / TWINT |
-| FA-Opt-3 Temporäre Reservierung | `SeatHold`, 5 Minuten, Echtzeit via Turbo Stream |
-| FA-Opt-3 Temporäre Reservierung | `SeatHold`, `SeatHoldsController`, Turbo Streams |
+| FA-7 Profilverwaltung | `UsersController#edit` / `#update` |
+| FA-8 Benutzerverwaltung | `UsersController#index`, `UserPolicy#change_role?` |
+| FA-9 Aktivitätsprotokoll | `ActivityLog`, `Admin::ActivityLogsController` |
+| FA-Opt-1 Temporäre Reservierung | `SeatHold`, `SeatHoldsController`, 5 Minuten, Turbo Streams |
+| FA-Opt-2 Zahlungs-Checkout | `CheckoutsController`, simuliert mit Apple Pay / Kreditkarte / TWINT |
+| FA-Opt-3 Stornierung | `BookingsController#destroy`, nur bei künftiger Vorstellung |
 | NFA-1 Keine Doppelbuchungen | Unique-Index `[showtime_id, seat_id]`, `with_lock` beim Buchen |
 | NFA-2 Optimistic Locking | `lock_version` auf `movies` und `showtimes` |
 | NFA-3 Performance | Lasttest `bin/rails benchmark:showtimes`, N+1-Schutz im Testfall |
 | NFA-4 Access Control | Pundit-Policies, `require_admin` |
 | NFA-5 Fehlerbehandlung | Formulare mit erhaltenen Eingaben, 404-Seite, Flash-Meldungen |
+| NFA-6 Automatisierte Tests | 27 Testdateien, 128 Testfälle (Model, Controller, Integration, System) |
+| NFA-7 Kontosicherheit | bcrypt, Login-Drosselung, signierte Reset-Token, Schutz des letzten Admins |
 
 ### Nicht umgesetzt
 
