@@ -40,7 +40,7 @@ class UserTest < ActiveSupport::TestCase
     assert users(:admin).update(admin: false)
   end
 
-  test "Reset-Token identifiziert den Benutzer und verfaellt nach Ablauf" do
+  test "NFA-7 Reset-Token identifiziert den Benutzer und verfaellt nach Ablauf" do
     user = users(:customer)
     token = user.generate_token_for(:password_reset)
 
@@ -51,7 +51,7 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
-  test "Reset-Token wird durch eine Passwortaenderung entwertet" do
+  test "NFA-7 Reset-Token wird durch eine Passwortaenderung entwertet" do
     user = users(:customer)
     token = user.generate_token_for(:password_reset)
     user.update!(password: "ganzneuespasswort")
@@ -59,7 +59,7 @@ class UserTest < ActiveSupport::TestCase
     assert_nil User.find_by_token_for(:password_reset, token)
   end
 
-  test "Reset-Anfragen sind kurzzeitig gesperrt" do
+  test "NFA-7 Reset-Anfragen sind kurzzeitig gesperrt" do
     user = users(:customer)
     assert_not user.password_reset_throttled?
 

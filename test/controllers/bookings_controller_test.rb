@@ -71,7 +71,7 @@ class BookingsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "FA-Opt-3 fremd reservierter Platz kann nicht gebucht werden" do
+  test "FA-Opt-1 fremd reservierter Platz kann nicht gebucht werden" do
     sign_in_as users(:customer)
 
     assert_no_difference("Booking.count") do
@@ -82,7 +82,7 @@ class BookingsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/anderen Person gebucht/, flash[:alert])
   end
 
-  test "FA-Opt-3 eigene Reservierung wird bei der Buchung aufgeloest" do
+  test "FA-Opt-1 eigene Reservierung wird bei der Buchung aufgeloest" do
     sign_in_as users(:other_customer)
 
     assert_difference([ "Booking.count", "-SeatHold.count" ], 1) do

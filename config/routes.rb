@@ -16,7 +16,7 @@ Rails.application.routes.draw do
   resources :users, only: [ :index, :show, :edit, :update, :destroy ]
   resources :movies, only: [ :show ]
   resources :showtimes, only: [ :index, :show ] do
-    # FA-Opt-3: temporaere Sitzplatzreservierung
+    # FA-Opt-1: temporaere Sitzplatzreservierung
     resources :seat_holds, only: [ :create, :destroy ]
     # FA-Opt-2: Bestaetigung und simulierter Zahlungsvorgang
     resource :checkout, only: [ :show ], controller: "checkouts"

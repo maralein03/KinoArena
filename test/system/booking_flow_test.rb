@@ -55,7 +55,7 @@ class BookingFlowTest < ApplicationSystemTestCase
     assert_selector "svg[aria-label='QR-Code des Tickets']", visible: :all
   end
 
-  test "Kunde storniert ein Ticket" do
+  test "FA-Opt-3 Kunde storniert ein Ticket" do
     sign_in_as users(:customer)
     visit bookings_path
 

@@ -22,6 +22,42 @@ strikte Concurrency-Mechanismen sicherstellen, dass kein Platz doppelt vergeben 
 
 ## 🎯 2. Funktionsumfang
 
+```mermaid
+flowchart LR
+    Kunde([Kunde])
+    Admin([Administrator])
+
+    A[Konto erstellen und anmelden]
+    B[Passwort zurücksetzen]
+    C[Programm und Spielzeiten ansehen]
+    D[Sitzplatz wählen und buchen]
+    E[Ticket mit QR-Code ansehen]
+    F[Buchung stornieren]
+    G[Profil bearbeiten]
+
+    H[Filme verwalten]
+    I[Säle verwalten]
+    J[Vorstellungen verwalten]
+    K[Benutzer und Rollen verwalten]
+    L[Aktivitätsprotokoll einsehen]
+
+    Kunde --- A
+    Kunde --- B
+    Kunde --- C
+    Kunde --- D
+    Kunde --- E
+    Kunde --- F
+    Kunde --- G
+
+    Admin --- H
+    Admin --- I
+    Admin --- J
+    Admin --- K
+    Admin --- L
+```
+
+Der Administrator besitzt zusätzlich alle Rechte eines Kunden.
+
 ### Kunde
 - Konto erstellen, anmelden, abmelden
 - Vergessenes Passwort über einen zeitlich begrenzten Link zurücksetzen
@@ -173,6 +209,27 @@ Ablauf bei zwei gleichzeitigen Kunden:
 3. Bei Ben wechselt derselbe Platz **sofort** auf goldgelb und wird deaktiviert
 4. Anna bucht → die Reservierung wird in eine Buchung überführt, der Platz gilt als belegt
 5. Bricht Anna ab, läuft die Reservierung nach 5 Minuten ab und der Platz wird wieder frei
+
+```mermaid
+sequenceDiagram
+    participant Anna
+    participant Server
+    participant DB as Datenbank
+    participant Ben
+
+    Anna->>Server: Klick auf Platz G9
+    Server->>DB: Reservierung anlegen (5 Minuten)
+    Server-->>Anna: Platz rot, Countdown läuft
+    Server-->>Ben: Turbo Stream: Platz goldgelb, gesperrt
+
+    Ben->>Server: Klick auf Platz G9
+    Server-->>Ben: Abgelehnt, bereits reserviert
+
+    Anna->>Server: Buchung abschicken
+    Server->>DB: Buchung speichern, Reservierung löschen
+    Server-->>Anna: Ticket mit QR-Code
+    Server-->>Ben: Turbo Stream: Platz belegt
+```
 
 Die Anzeige ist nur die Komfortschicht. Auch wer die Oberfläche umgeht, wird
 serverseitig gestoppt:
@@ -521,6 +578,7 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 | Anforderung | Begründung |
 |---|---|
 | Echte Zahlungsabwicklung | Der Checkout simuliert die Zahlung bewusst. Eine Anbindung an einen echten Anbieter erfordert Vertragsdaten und PCI-DSS-Auflagen, die im Schulkontext nicht erfüllbar sind. Gespeichert wird nur die gewählte Zahlungsart. |
+| Mehrsprachigkeit | Die Applikation richtet sich an ein Schweizer Kino und ist durchgehend deutsch. Auf `t()`-Aufrufe und Übersetzungsdateien wurde daher verzichtet, um die Views lesbar zu halten. |
 
 ---
 

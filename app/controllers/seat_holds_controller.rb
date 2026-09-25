@@ -2,7 +2,7 @@ class SeatHoldsController < ApplicationController
   before_action :require_user
   before_action :set_showtime
 
-  # Reserviert einen Sitzplatz fuer 5 Minuten (FA-Opt-3).
+  # Reserviert einen Sitzplatz fuer 5 Minuten (FA-Opt-1).
   def create
     seat = @showtime.auditorium.seats.find(params[:seat_id])
     hold = SeatHold.hold!(showtime: @showtime, seat: seat, user: current_user)

@@ -9,7 +9,7 @@ class CreateSeatHolds < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    # FA-Opt-3: ein Sitzplatz kann pro Vorstellung nur einmal reserviert sein
+    # FA-Opt-1: ein Sitzplatz kann pro Vorstellung nur einmal reserviert sein
     add_index :seat_holds, [ :showtime_id, :seat_id ], unique: true, name: "index_seat_holds_on_showtime_and_seat"
     add_index :seat_holds, :expires_at
   end

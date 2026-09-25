@@ -31,7 +31,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
   end
 
-  test "zu viele Fehlversuche sperren die Anmeldung voruebergehend" do
+  test "NFA-7 zu viele Fehlversuche sperren die Anmeldung voruebergehend" do
     user = users(:other_customer)
 
     SessionsController::MAX_FAILED_ATTEMPTS.times do
@@ -50,7 +50,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "erfolgreiche Anmeldung setzt den Fehlerzaehler zurueck" do
+  test "NFA-7 erfolgreiche Anmeldung setzt den Fehlerzaehler zurueck" do
     user = users(:admin)
 
     post login_path, params: { email_address: user.email_address, password: "falsch" }

@@ -7,7 +7,7 @@ class SeatHoldsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
   end
 
-  test "FA-Opt-3 Kunde reserviert einen freien Platz fuer 5 Minuten" do
+  test "FA-Opt-1 Kunde reserviert einen freien Platz fuer 5 Minuten" do
     sign_in_as users(:customer)
 
     assert_difference("SeatHold.count", 1) do
