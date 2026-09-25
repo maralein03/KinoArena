@@ -3,7 +3,7 @@
 **Modul 223:** Multiuser-Applikationen objektorientiert realisieren
 **Autorin:** Mara Spichiger
 **Schulklasse:** 24-223-E
-**Datum:** 18.09.2026 (überarbeitet am 24.09.2026)
+**Datum:** 18.09.2026 (überarbeitet am 25.09.2026)
 
 ---
 
@@ -109,7 +109,7 @@ erDiagram
     }
     AUDITORIUM {
         int id PK
-        string name UK
+        string name "eindeutig per Modellvalidierung"
         int total_seats
     }
     SEAT {
@@ -155,6 +155,18 @@ erDiagram
 
 Zentrale Regel: **`bookings` besitzt einen zusammengesetzten Unique-Index auf
 `[showtime_id, seat_id]`** – ein Sitzplatz kann pro Vorstellung nur einmal existieren.
+
+Insgesamt sichern vier Unique-Indizes die Datenintegrität auf Datenbankebene ab:
+
+| Tabelle | Spalten | Verhindert |
+|---|---|---|
+| `bookings` | `[showtime_id, seat_id]` | Doppelbuchung desselben Platzes |
+| `seat_holds` | `[showtime_id, seat_id]` | Doppelte Reservierung desselben Platzes |
+| `seats` | `[auditorium_id, row, number]` | Zweimal Platz A1 im selben Saal |
+| `users` | `email_address` | Zwei Konten mit derselben Adresse |
+
+Die Eindeutigkeit des Saalnamens ist bewusst nur im Modell validiert: Säle werden
+ausschliesslich von Administratoren angelegt, ein Wettlauf ist dort nicht zu erwarten.
 
 ---
 
@@ -360,7 +372,7 @@ keine Benutzerdaten geschrieben werden müssen.
 | Passwörter | bcrypt (`has_secure_password`) |
 | QR-Codes | rqrcode |
 | Tests | Minitest, Capybara |
-| Entwicklungsumgebung | Windows 11 / WSL2 (Ubuntu) / VS Code |
+| Entwicklungsumgebung | Windows 11 / WSL2 (Fedora Linux 41) / VS Code |
 
 **Concurrency Protection**
 
@@ -509,7 +521,7 @@ sich überschreiben:
 REQUESTS=100 CONCURRENCY=50 LIMIT=1.5 URL=http://localhost:3000/ bin/rails benchmark:showtimes
 ```
 
-**Messumgebung:** WSL2 (Ubuntu) auf Windows 11, Puma mit 3 Threads, SQLite3,
+**Messumgebung:** WSL2 (Fedora Linux 41) auf Windows 11, Puma mit 3 Threads, SQLite3,
 50 gleichzeitige Anfragen auf `/`.
 
 | Kennzahl | Produktionsmodus | Development-Modus |
@@ -570,7 +582,7 @@ Datenbankabfragen **nicht** mit der Anzahl der Filme wächst (kein N+1-Problem).
 | NFA-3 Performance | Lasttest `bin/rails benchmark:showtimes`, N+1-Schutz im Testfall |
 | NFA-4 Access Control | Pundit-Policies, `require_admin` |
 | NFA-5 Fehlerbehandlung | Formulare mit erhaltenen Eingaben, 404-Seite, Flash-Meldungen |
-| NFA-6 Automatisierte Tests | 27 Testdateien, 130 Testfälle (Model, Controller, Integration, System) |
+| NFA-6 Automatisierte Tests | 27 Testdateien, 130 Testfälle (Model, Controller, Integration, Mailer, System) |
 | NFA-7 Kontosicherheit | bcrypt, Login-Drosselung, signierte Reset-Token, Schutz des letzten Admins |
 
 ### Nicht umgesetzt
